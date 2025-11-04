@@ -142,6 +142,95 @@ class PromptService {
           tags: ['ghost', 'portrait', 'ethereal', 'horror'],
           promptType: PromptType.textToImage,
         ),
+        
+        // Modern & Trend Scenes
+        PromptItem(
+          id: 'cyberpunk_neon_city',
+          title: 'Cyberpunk Neon City',
+          prompt:
+              'A futuristic cyberpunk cityscape at night with neon lights, holographic advertisements, flying vehicles, rain-soaked streets reflecting neon colors, cyberpunk aesthetic, Blade Runner style, cinematic lighting',
+          isPopular: true,
+          tags: ['cyberpunk', 'neon', 'city', 'futuristic', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'liminal_space_hallway',
+          title: 'Liminal Space Hallway',
+          prompt:
+              'An eerie liminal space hallway with endless corridors, flickering fluorescent lights, retro carpet patterns, unsettling empty atmosphere, dreamlike quality, nostalgic horror aesthetic, cinematic composition',
+          isPopular: true,
+          tags: ['liminal', 'hallway', 'nostalgic', 'horror', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'vaporwave_sunset',
+          title: 'Vaporwave Sunset',
+          prompt:
+              'Aesthetic vaporwave sunset scene with palm trees silhouetted against a pink and purple gradient sky, retro grid floor, Greek columns, neon signs, nostalgic 80s aesthetic, dreamy atmosphere',
+          isPopular: true,
+          tags: ['vaporwave', 'sunset', 'aesthetic', 'retro', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'dark_academia_library',
+          title: 'Dark Academia Library',
+          prompt:
+              'A moody dark academia library with towering bookshelves, antique furniture, candlelight, leather-bound books, gothic architecture, scholarly atmosphere, warm golden lighting, cinematic shadows',
+          isPopular: true,
+          tags: ['dark_academia', 'library', 'gothic', 'scholarly', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'cottagecore_garden',
+          title: 'Cottagecore Garden',
+          prompt:
+              'A whimsical cottagecore garden with wildflowers, vegetable patches, rustic wooden furniture, vintage teacups, soft natural lighting, pastoral atmosphere, cozy aesthetic, warm tones',
+          isPopular: true,
+          tags: ['cottagecore', 'garden', 'pastoral', 'cozy', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'abandoned_subway',
+          title: 'Abandoned Subway',
+          prompt:
+              'An abandoned subway tunnel with graffiti-covered walls, flickering lights, overgrown vegetation, mysterious atmosphere, urban exploration aesthetic, cinematic horror lighting, eerie mood',
+          tags: ['abandoned', 'subway', 'urban', 'exploration', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'neon_rain_alley',
+          title: 'Neon Rain Alley',
+          prompt:
+              'A narrow alleyway at night with neon signs reflecting on wet pavement, steam rising from manholes, cinematic rain effects, cyberpunk noir atmosphere, moody lighting, film noir style',
+          isPopular: true,
+          tags: ['neon', 'rain', 'alley', 'noir', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'astral_plane',
+          title: 'Astral Plane',
+          prompt:
+              'A mystical astral plane with floating geometric shapes, ethereal colors, cosmic patterns, spiritual energy, transcendental atmosphere, surreal composition, psychedelic aesthetic',
+          tags: ['astral', 'cosmic', 'spiritual', 'surreal', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'retro_futuristic_lab',
+          title: 'Retro Futuristic Lab',
+          prompt:
+              'A retro-futuristic laboratory from the 80s with analog computers, glowing screens, holographic displays, vintage sci-fi aesthetic, nostalgic technology, cinematic lighting',
+          tags: ['retro', 'futuristic', 'lab', 'sci-fi', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: 'misty_forest_path',
+          title: 'Misty Forest Path',
+          prompt:
+              'A mysterious forest path shrouded in thick mist, ancient trees on either side, dappled sunlight filtering through fog, fairy tale atmosphere, ethereal lighting, cinematic composition',
+          isPopular: true,
+          tags: ['forest', 'mist', 'path', 'mysterious', 'trend'],
+          promptType: PromptType.textToImage,
+        ),
       ],
     ),
     // Image to Image Prompts
@@ -421,6 +510,111 @@ class PromptService {
           tags: ['artist', 'halloween', 'creative', 'artistic', 'professional'],
           promptType: PromptType.imageToImage,
         ),
+        
+        // Trend & Modern Characters
+        PromptItem(
+          id: 'halloween_anime_character',
+          title: 'Anime Character',
+          prompt:
+              'Transform into a stunning anime Halloween character with vibrant anime art style, colorful hair, expressive eyes, dynamic pose, anime background with sakura petals, Japanese aesthetic, anime art style, cinematic lighting, dramatic shadows, photorealistic anime style, high quality, professional animation, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['anime', 'halloween', 'japanese', 'vibrant', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_kpop_idol',
+          title: 'K-Pop Idol',
+          prompt:
+              'Transform into a glamorous K-pop Halloween idol with stylish outfit, colorful hair, stage makeup, concert stage background with neon lights, dynamic lighting, K-pop aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['kpop', 'halloween', 'glamorous', 'stylish', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_cyber_goth',
+          title: 'Cyber Goth',
+          prompt:
+              'Transform into an edgy cyber goth Halloween character with neon hair, platform boots, cyberpunk clothing, cyber goth aesthetic, neon-lit club background with strobe lights, alternative fashion, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['cybergoth', 'halloween', 'edgy', 'alternative', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_coquette',
+          title: 'Coquette Aesthetic',
+          prompt:
+              'Transform into a romantic coquette Halloween character with soft pink and white outfit, bows, lace details, vintage accessories, aesthetic background with flowers, soft lighting, romantic atmosphere, dreamy aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['coquette', 'halloween', 'romantic', 'aesthetic', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_eboy_egirl',
+          title: 'E-Boy/E-Girl',
+          prompt:
+              'Transform into a trendy e-boy/e-girl Halloween character with colorful hair, choker, oversized hoodie, streetwear aesthetic, urban background with graffiti, social media aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['eboy', 'egirl', 'halloween', 'trendy', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_fairy_grunge',
+          title: 'Fairy Grunge',
+          prompt:
+              'Transform into an ethereal fairy grunge Halloween character with fairy wings, grunge clothing, nature accessories, mystical forest background with mushrooms, fairy lights, grunge aesthetic mixed with fantasy, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          tags: ['fairygrunge', 'halloween', 'ethereal', 'grunge', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_angelcore',
+          title: 'Angelcore Aesthetic',
+          prompt:
+              'Transform into a heavenly angelcore Halloween character with angel wings, white flowing dress, halo, celestial accessories, cloud background with stars, angelic atmosphere, soft lighting, dreamy aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          tags: ['angelcore', 'halloween', 'heavenly', 'celestial', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_dark_academia',
+          title: 'Dark Academia',
+          prompt:
+              'Transform into a scholarly dark academia Halloween character with tweed blazer, turtleneck, vintage accessories, dark academia library background with books, candlelight, scholarly atmosphere, warm golden lighting, cinematic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['dark_academia', 'halloween', 'scholarly', 'vintage', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_cottagecore',
+          title: 'Cottagecore',
+          prompt:
+              'Transform into a whimsical cottagecore Halloween character with floral dress, vintage accessories, nature elements, cottage garden background with wildflowers, soft natural lighting, pastoral atmosphere, cozy aesthetic, warm tones, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          tags: ['cottagecore', 'halloween', 'whimsical', 'pastoral', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_goblin_core',
+          title: 'Goblin Core',
+          prompt:
+              'Transform into a quirky goblin core Halloween character with mismatched clothing, nature accessories, quirky style, forest background with mushrooms, natural elements, goblin aesthetic, whimsical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          tags: ['goblincore', 'halloween', 'quirky', 'nature', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_liminal_space',
+          title: 'Liminal Space',
+          prompt:
+              'Transform into a dreamlike liminal space Halloween character with retro outfit, nostalgic aesthetic, liminal space hallway background with endless corridors, flickering lights, unsettling atmosphere, dreamlike quality, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          isPopular: true,
+          tags: ['liminal', 'halloween', 'nostalgic', 'dreamlike', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: 'halloween_vaporwave',
+          title: 'Vaporwave',
+          prompt:
+              'Transform into a retro vaporwave Halloween character with 80s aesthetic outfit, neon colors, retro accessories, vaporwave sunset background with palm trees, pink and purple gradient, nostalgic aesthetic, dreamy atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+          tags: ['vaporwave', 'halloween', 'retro', '80s', 'trend'],
+          promptType: PromptType.imageToImage,
+        ),
       ],
     ),
   ];
@@ -476,11 +670,11 @@ class PromptService {
 
   // Get available subcategories
   static List<String> getTextToImageSubcategories() {
-    return ['scene', 'fantasy', 'horror'];
+    return ['scene', 'fantasy', 'horror', 'trend'];
   }
 
   static List<String> getImageToImageSubcategories() {
-    return ['classic', 'supernatural', 'nobility', 'action', 'scifi', 'vintage', 'fantasy', 'entertainment', 'western', 'professional'];
+    return ['classic', 'supernatural', 'nobility', 'action', 'scifi', 'vintage', 'fantasy', 'entertainment', 'western', 'professional', 'trend'];
   }
 
   static List<PromptItem> searchPrompts(String query) {

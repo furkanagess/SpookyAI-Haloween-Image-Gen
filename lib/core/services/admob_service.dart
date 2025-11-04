@@ -5,20 +5,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class AdMobService {
-  // iOS Ad Unit ID
+  // iOS Ad Unit ID (updated)
   static const String _iosRewardedAdUnitId =
-      'ca-app-pub-3499593115543692/2142919979';
+      'ca-app-pub-3499593115543692/7580246775';
 
-  // Android Ad Unit ID (from screenshot)
+  // Android Ad Unit ID (updated)
   static const String _androidRewardedAdUnitId =
-      'ca-app-pub-3499593115543692/4638233133';
+      'ca-app-pub-3499593115543692/4351448208';
 
   // Test IDs for development
   static const String _testRewardedAdUnitId =
       'ca-app-pub-3940256099942544/5224354917';
 
   static const String _dailyAdCountKey = 'daily_ad_count';
-  static const String _lastAdDateKey = 'last_ad_date';
+  static const String _lastResetTimeKey = 'last_reset_time';
   static const int _maxDailyAds = 5;
   static const double _tokenReward = 0.5;
 
@@ -81,41 +81,42 @@ class AdMobService {
     );
   }
 
-  /// Check if user can watch ads today
-  static Future<bool> canWatchAdToday() async {
+  /// Check and reset daily ad count if 24 hours have passed
+  static Future<void> _checkAndResetDailyCount() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    final today = now.toIso8601String().split('T')[0];
-    final lastAdDate = prefs.getString(_lastAdDateKey);
-    final dailyAdCount = prefs.getInt(_dailyAdCountKey) ?? 0;
+    final lastResetStr = prefs.getString(_lastResetTimeKey);
 
-    // Reset counter if it's a new day (24 hours have passed)
-    if (lastAdDate != today) {
-      await prefs.setString(_lastAdDateKey, today);
+    if (lastResetStr == null) {
+      // First time - initialize reset time
+      await prefs.setString(_lastResetTimeKey, now.toIso8601String());
       await prefs.setInt(_dailyAdCountKey, 0);
-      await prefs.setString('last_reset_time', now.toIso8601String());
-      return true;
+      return;
     }
 
+    final lastReset = DateTime.parse(lastResetStr);
+    final nextReset = lastReset.add(const Duration(hours: 24));
+
+    // Reset if 24 hours have passed
+    if (now.isAfter(nextReset) || now.isAtSameMomentAs(nextReset)) {
+      await prefs.setString(_lastResetTimeKey, now.toIso8601String());
+      await prefs.setInt(_dailyAdCountKey, 0);
+    }
+  }
+
+  /// Check if user can watch ads (24-hour period)
+  static Future<bool> canWatchAdToday() async {
+    await _checkAndResetDailyCount();
+    final prefs = await SharedPreferences.getInstance();
+    final dailyAdCount = prefs.getInt(_dailyAdCountKey) ?? 0;
     return dailyAdCount < _maxDailyAds;
   }
 
-  /// Get remaining ads for today
+  /// Get remaining ads in current 24-hour period
   static Future<int> getRemainingAdsToday() async {
+    await _checkAndResetDailyCount();
     final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final today = now.toIso8601String().split('T')[0];
-    final lastAdDate = prefs.getString(_lastAdDateKey);
     final dailyAdCount = prefs.getInt(_dailyAdCountKey) ?? 0;
-
-    // Reset counter if it's a new day (24 hours have passed)
-    if (lastAdDate != today) {
-      await prefs.setString(_lastAdDateKey, today);
-      await prefs.setInt(_dailyAdCountKey, 0);
-      await prefs.setString('last_reset_time', now.toIso8601String());
-      return _maxDailyAds;
-    }
-
     return _maxDailyAds - dailyAdCount;
   }
 
@@ -131,10 +132,10 @@ class AdMobService {
     return _isAdLoaded && _rewardedAd != null;
   }
 
-  /// Get time until next ad reset
+  /// Get time until next ad reset (24-hour period)
   static Future<Duration?> getTimeUntilReset() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastResetStr = prefs.getString('last_reset_time');
+    final lastResetStr = prefs.getString(_lastResetTimeKey);
 
     if (lastResetStr == null) {
       return null;
@@ -144,7 +145,7 @@ class AdMobService {
     final nextReset = lastReset.add(const Duration(hours: 24));
     final now = DateTime.now();
 
-    if (now.isAfter(nextReset)) {
+    if (now.isAfter(nextReset) || now.isAtSameMomentAs(nextReset)) {
       return Duration.zero;
     }
 
@@ -232,20 +233,16 @@ class AdMobService {
     await prefs.setInt(_dailyAdCountKey, currentCount + 1);
   }
 
-  /// Get daily ad statistics
+  /// Get daily ad statistics (24-hour period)
   static Future<Map<String, dynamic>> getDailyAdStats() async {
+    await _checkAndResetDailyCount();
     final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final today = now.toIso8601String().split('T')[0];
-    final lastAdDate = prefs.getString(_lastAdDateKey);
     final dailyAdCount = prefs.getInt(_dailyAdCountKey) ?? 0;
     final remainingAds = _maxDailyAds - dailyAdCount;
     final timeUntilReset = await getTimeUntilReset();
     final isAdReady = await isAdAvailable();
 
     return {
-      'today': today,
-      'lastAdDate': lastAdDate,
       'adsWatchedToday': dailyAdCount,
       'remainingAds': remainingAds,
       'maxDailyAds': _maxDailyAds,
