@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/seasons/season_palette.dart';
+
 enum NotificationType { success, error, warning, info }
 
 class AppNotification {
@@ -212,35 +214,39 @@ class NotificationService {
               onTap: hide,
               child: Container(
                 margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
                 decoration: BoxDecoration(
-                  color: _getBackgroundColor(notification.type),
-                  borderRadius: BorderRadius.circular(12),
+                  color: SeasonPalette.card,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: _typeColor(notification.type).withOpacity(0.35),
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: _getShadowColor(notification.type),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.28),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                    BoxShadow(
+                      color: _typeColor(notification.type).withOpacity(0.18),
+                      blurRadius: 18,
                     ),
                   ],
                 ),
                 child: Row(
                   children: [
-                    // Icon
+                    // Icon tile (same shape as Profile rows)
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
-                        color: _getIconBackgroundColor(notification.type),
-                        borderRadius: BorderRadius.circular(12),
+                        color: _typeColor(notification.type).withOpacity(0.16),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         _getIcon(notification.type),
-                        color: _getIconColor(notification.type),
-                        size: 16,
+                        color: _typeColor(notification.type),
+                        size: 19,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -249,9 +255,9 @@ class NotificationService {
                       child: Text(
                         notification.message,
                         style: TextStyle(
-                          color: _getTextColor(notification.type),
+                          color: SeasonPalette.text,
                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           height: 1.3,
                         ),
                       ),
@@ -272,7 +278,7 @@ class NotificationService {
                         child: Text(
                           notification.actionLabel!,
                           style: TextStyle(
-                            color: _getTextColor(notification.type),
+                            color: _typeColor(notification.type),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -284,9 +290,7 @@ class NotificationService {
                       onTap: hide,
                       child: Icon(
                         Icons.close,
-                        color: _getTextColor(
-                          notification.type,
-                        ).withOpacity(0.7),
+                        color: SeasonPalette.text.withOpacity(0.4),
                         size: 18,
                       ),
                     ),
@@ -300,52 +304,19 @@ class NotificationService {
     );
   }
 
-  // Get colors based on notification type
-  static Color _getBackgroundColor(NotificationType type) {
-    switch (type) {
-      case NotificationType.success:
-        return const Color(0xFF1B5E20); // Dark green
-      case NotificationType.error:
-        return const Color(0xFFB71C1C); // Dark red
-      case NotificationType.warning:
-        return const Color(0xFFE65100); // Dark orange
-      case NotificationType.info:
-        return const Color(0xFF0D47A1); // Dark blue
-    }
-  }
-
-  static Color _getShadowColor(NotificationType type) {
-    switch (type) {
-      case NotificationType.success:
-        return const Color(0xFF4CAF50).withOpacity(0.3);
-      case NotificationType.error:
-        return const Color(0xFFF44336).withOpacity(0.3);
-      case NotificationType.warning:
-        return const Color(0xFFFF9800).withOpacity(0.3);
-      case NotificationType.info:
-        return const Color(0xFF2196F3).withOpacity(0.3);
-    }
-  }
-
-  static Color _getIconBackgroundColor(NotificationType type) {
+  /// Accent per type. Success/info follow the season so the toast feels
+  /// native to the current theme.
+  static Color _typeColor(NotificationType type) {
     switch (type) {
       case NotificationType.success:
         return const Color(0xFF4CAF50);
       case NotificationType.error:
-        return const Color(0xFFF44336);
+        return const Color(0xFFEF5350);
       case NotificationType.warning:
-        return const Color(0xFFFF9800);
+        return const Color(0xFFFFA726);
       case NotificationType.info:
-        return const Color(0xFF2196F3);
+        return SeasonPalette.accent;
     }
-  }
-
-  static Color _getIconColor(NotificationType type) {
-    return Colors.white;
-  }
-
-  static Color _getTextColor(NotificationType type) {
-    return Colors.white;
   }
 
   static IconData _getIcon(NotificationType type) {

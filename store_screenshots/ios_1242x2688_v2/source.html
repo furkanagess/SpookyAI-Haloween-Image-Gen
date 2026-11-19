@@ -1,0 +1,173 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SpookyAI Store Shots v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@500;600;700;800&display=block" rel="stylesheet">
+<style>
+:root{--bg:#0F0B1A;--or:#FF6A00;--or2:#FF9A1F;--pu:#B25AFF;--mut:#CDBFE2;--xr:#E53935;--xg:#43A047;--xy:#FFC107}
+*{box-sizing:border-box;margin:0}
+html,body{width:1242px;height:2688px;overflow:hidden;background:var(--bg);font-family:Inter,sans-serif;color:#fff}
+.s{position:absolute;inset:0;display:none;overflow:hidden}.s.on{display:block}
+.glow{position:absolute;border-radius:50%;filter:blur(170px);opacity:.5}
+.copy{position:absolute;left:70px;right:70px;top:170px;text-align:center;z-index:10}
+h1{font:800 150px/.98 'Bricolage Grotesque';letter-spacing:-.035em;text-shadow:0 10px 40px rgba(0,0,0,.4)}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--or),var(--or2) 45%,var(--pu));-webkit-background-clip:text;color:transparent}
+h1 em.xm{background:linear-gradient(90deg,#FF5A4E,var(--xy) 50%,#5BD16A)}
+h1 em.rb{background:linear-gradient(90deg,#FF6A00,#FF4F9A 30%,#B25AFF 55%,#4FC3F7 80%,#5BD16A);-webkit-background-clip:text}
+p.sub{font:600 48px/1.34 Inter;color:var(--mut);margin:44px auto 0;max-width:1060px}
+.card{position:absolute;border-radius:46px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 3px rgba(255,255,255,.12)}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.lbl{position:absolute;left:22px;bottom:22px;padding:14px 24px;border-radius:999px;background:rgba(15,11,26,.75);backdrop-filter:blur(10px);font:700 30px Inter;border:2px solid rgba(255,255,255,.2);white-space:nowrap}
+.phone{position:absolute;width:760px;height:1560px;border-radius:100px;background:#05030a;padding:24px;box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 0 5px #2a2238,0 0 140px rgba(178,90,255,.3)}
+.scr{position:relative;width:100%;height:100%;border-radius:78px;overflow:hidden;background:#140f22}
+.scr>img.full{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.notch{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:200px;height:58px;border-radius:30px;background:#000;z-index:9}
+.btn{display:flex;align-items:center;justify-content:center;gap:14px;height:108px;border-radius:34px;background:linear-gradient(90deg,var(--or),var(--or2));font:700 40px Inter;color:#fff;box-shadow:0 18px 44px rgba(255,106,0,.45)}
+.orb{position:absolute;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;font-size:78px;background:rgba(255,255,255,.08);border:3px solid rgba(255,255,255,.18);backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.45);z-index:6}
+.feat{position:absolute;left:0;right:0;text-align:center;font:700 40px Inter;color:#fff;opacity:.92;z-index:10;letter-spacing:.01em}
+.feat b{color:var(--or2);margin:0 18px}
+/* season tiles */
+.big{position:absolute;width:530px;height:720px;border-radius:50px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6)}
+.big img{width:100%;height:100%;object-fit:cover}
+.big .ov{position:absolute;inset:auto 0 0 0;padding:34px 34px 36px;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.big .nm{font:800 60px 'Bricolage Grotesque'}
+.big .dt{font:700 30px Inter;opacity:.85;margin-top:6px}
+.live{position:absolute;top:28px;left:28px;padding:12px 22px;border-radius:999px;font:800 26px Inter;letter-spacing:.08em;background:#22C55E;color:#04210f;display:flex;gap:10px;align-items:center}
+.live i{width:14px;height:14px;border-radius:50%;background:#04210f}
+.mini{border-radius:38px;height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border:2px solid rgba(255,255,255,.14);box-shadow:0 20px 50px rgba(0,0,0,.4);position:relative}
+.mini .e{font-size:86px;line-height:1}
+.mini .n{font:700 25px/1.15 Inter;text-align:center;padding:0 10px}
+.mini .m{font:600 21px Inter;opacity:.7}
+/* app ui */
+.ui-h{position:absolute;top:110px;left:44px;right:44px;font:800 50px 'Bricolage Grotesque'}
+.tabs{position:absolute;top:196px;left:44px;right:0;display:flex;gap:16px;white-space:nowrap}
+.tab{padding:18px 28px;border-radius:999px;font:700 30px Inter;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.14)}
+.tab.on{background:linear-gradient(90deg,var(--or),var(--or2));border-color:transparent}
+.grid2{position:absolute;top:310px;left:44px;right:44px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.pc{position:relative;height:400px;border-radius:34px;overflow:hidden}
+.pc img{width:100%;height:100%;object-fit:cover}
+.pc .t{position:absolute;inset:auto 0 0 0;padding:60px 20px 20px;font:700 28px Inter;background:linear-gradient(transparent,rgba(0,0,0,.85))}
+.pro{position:absolute;top:16px;right:16px;padding:8px 16px;border-radius:999px;font:800 22px Inter;background:linear-gradient(90deg,#FFC107,#FF9A1F);color:#2a1600}
+.free{position:absolute;top:16px;right:16px;padding:8px 16px;border-radius:999px;font:800 22px Inter;background:rgba(255,255,255,.9);color:#140f22}
+.callout{position:absolute;padding:30px 38px;border-radius:40px;background:rgba(29,22,43,.95);border:3px solid rgba(255,154,31,.6);box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 60px rgba(255,106,0,.3);z-index:12}
+.arrow{position:absolute;width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,var(--or),var(--pu));display:grid;place-items:center;font:800 64px Inter;box-shadow:0 0 70px rgba(255,106,0,.55);z-index:8}
+.steps{position:absolute;left:70px;right:70px;display:flex;justify-content:center;gap:26px;z-index:10}
+.step{display:flex;align-items:center;gap:16px;font:700 38px Inter}
+.step span{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--or),var(--pu));font:800 32px Inter}
+.step.dim{opacity:.95}
+</style></head><body>
+
+<!-- 1 HERO: every season -->
+<section class="s" id="s1">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--pu);left:-350px;top:-250px"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--or);left:-200px;top:1500px;opacity:.4"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--xr);left:700px;top:1300px;opacity:.35"></div>
+ <div class="glow" style="width:600px;height:600px;background:var(--xg);left:900px;top:500px;opacity:.2"></div>
+ <div class="copy">
+  <h1>AI Photo &amp;<br>Art Maker for<br><em class="rb">Every Season</em></h1>
+  <p class="sub">Spooky, festive &amp; magical art from your words or selfies</p>
+ </div>
+ <div class="card" style="width:470px;height:790px;left:-50px;top:1290px;transform:rotate(-11deg)"><img src="H/text-to-image/pumpkin_king.png"></div>
+ <div class="card" style="width:470px;height:790px;left:822px;top:1290px;transform:rotate(11deg)"><img src="C/image-to-image/ice_queen.jpg"></div>
+ <div class="card" style="width:590px;height:1020px;left:326px;top:1150px;z-index:3;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 4px #fff,0 0 100px rgba(255,106,0,.45)"><img src="H/image-to-image/enchantedd_witch.png"></div>
+ <div class="orb" style="left:120px;top:1110px">🎃</div>
+ <div class="orb" style="left:972px;top:1110px">🎄</div>
+ <div class="orb" style="left:40px;top:2120px;width:130px;height:130px;font-size:66px">💝</div>
+ <div class="orb" style="left:1072px;top:2110px;width:130px;height:130px;font-size:66px">🎆</div>
+ <div class="orb" style="left:250px;top:2250px;width:116px;height:116px;font-size:58px">🌸</div>
+ <div class="orb" style="left:876px;top:2250px;width:116px;height:116px;font-size:58px">🪔</div>
+ <div class="feat" style="top:2440px">Text to Image<b>•</b>Selfie Art<b>•</b>Photo to Video</div>
+</section>
+
+<!-- 2 SEASON WORLDS -->
+<section class="s" id="s2">
+ <div class="glow" style="width:800px;height:800px;background:var(--or);left:-300px;top:600px;opacity:.38"></div>
+ <div class="glow" style="width:800px;height:800px;background:var(--xr);left:700px;top:600px;opacity:.35"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--pu);left:150px;top:1800px;opacity:.4"></div>
+ <div class="copy">
+  <h1>A New World<br><em class="rb">Every Season</em></h1>
+  <p class="sub">Look, styles &amp; prompts change with the calendar. New worlds unlock all year</p>
+ </div>
+ <div class="big" style="left:70px;top:850px;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 4px var(--or),0 0 80px rgba(255,106,0,.4)"><img src="H/text-to-image/jacko_lantern.jpg"><div class="live"><i></i>LIVE</div><div class="ov"><div class="nm">🎃 Halloween</div><div class="dt">Spooky styles &amp; prompts</div></div></div>
+ <div class="big" style="left:642px;top:850px;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 4px #FF5A4E,0 0 80px rgba(229,57,53,.4)"><img src="C/text-to-image/santa_workshop.jpg"><div class="live"><i></i>LIVE</div><div class="ov"><div class="nm">🎄 Christmas</div><div class="dt">Festive styles &amp; prompts</div></div></div>
+ <div id="minis" style="position:absolute;left:70px;right:70px;top:1620px;display:grid;grid-template-columns:repeat(4,1fr);gap:22px"></div>
+</section>
+
+<!-- 3 EVENT PROMPTS -->
+<section class="s" id="s3">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--or);left:300px;top:1000px;opacity:.35"></div>
+ <div class="glow" style="width:800px;height:800px;background:var(--pu);left:-300px;top:-200px"></div>
+ <div class="copy">
+  <h1>Ready-Made<br><em>Event Prompts</em></h1>
+  <p class="sub">No ideas? Pick a curated seasonal style. One tap, stunning result</p>
+ </div>
+ <div class="phone" style="left:241px;top:1000px"><div class="scr">
+  <div class="notch"></div>
+  <div class="ui-h">Ready-made ideas</div>
+  <div class="tabs"><span class="tab on">🎃 Halloween</span><span class="tab">🎄 Christmas</span><span class="tab">💝 Valentine's</span></div>
+  <div class="grid2">
+   <div class="pc"><img src="H/text-to-image/raven_queen.jpg"><span class="pro">PRO</span><div class="t">Raven Queen</div></div>
+   <div class="pc"><img src="H/text-to-image/crimson_vampire.png"><span class="pro">PRO</span><div class="t">Crimson Vampire</div></div>
+   <div class="pc"><img src="H/text-to-image/ghost_bride.jpg"><span class="pro">PRO</span><div class="t">Ghost Bride</div></div>
+   <div class="pc"><img src="H/text-to-image/friendly_ghosty.jpg"><span class="free">FREE</span><div class="t">Friendly Ghost</div></div>
+   <div class="pc"><img src="H/text-to-image/skeleton_musician.jpg"><span class="pro">PRO</span><div class="t">Skeleton Musician</div></div>
+   <div class="pc"><img src="H/text-to-image/jacko_lantern.jpg"><span class="free">FREE</span><div class="t">Jack-o'-Lantern</div></div>
+  </div>
+ </div></div>
+ <div class="callout" style="left:40px;top:2390px;transform:rotate(-4deg);display:flex;align-items:center;gap:22px">
+  <div style="width:120px;height:160px;border-radius:24px;overflow:hidden"><img src="C/text-to-image/reindeer.jpg" style="width:100%;height:100%;object-fit:cover"></div>
+  <div><div style="font:800 40px 'Bricolage Grotesque'">🎄 Aurora Reindeer</div><div style="font:600 28px Inter;color:var(--mut);margin-top:6px">Christmas collection</div></div>
+ </div>
+ <div class="callout" style="right:30px;top:1330px;transform:rotate(4deg);padding:24px 34px">
+  <div style="font:800 44px 'Bricolage Grotesque'">✨ 1 tap</div><div style="font:600 28px Inter;color:var(--mut)">no prompt needed</div>
+ </div>
+</section>
+
+<!-- 4 SELFIE ANY SEASON -->
+<section class="s" id="s4">
+ <div class="glow" style="width:900px;height:900px;background:var(--or);left:-350px;top:1300px;opacity:.42"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--xr);left:700px;top:1300px;opacity:.38"></div>
+ <div class="glow" style="width:700px;height:700px;background:var(--pu);left:270px;top:500px;opacity:.35"></div>
+ <div class="copy">
+  <h1>Your Selfie,<br><em>Any Season</em></h1>
+  <p class="sub">One photo becomes a vampire, a werewolf or winter royalty</p>
+ </div>
+ <div class="card" style="width:380px;height:540px;left:431px;top:790px;z-index:4;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 5px #fff"><img src="R/boy.jpeg"><span class="lbl">📷 Your selfie</span></div>
+ <div class="arrow" style="left:250px;top:1270px;transform:rotate(45deg)">→</div>
+ <div class="arrow" style="left:862px;top:1270px;transform:rotate(135deg)">→</div>
+ <div class="card" style="width:540px;height:880px;left:55px;top:1420px;transform:rotate(-3deg);box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 5px var(--or),0 0 90px rgba(255,106,0,.5)"><img src="H/image-to-image/vampire_noble.png"><span class="lbl">🎃 Vampire Noble</span></div>
+ <div class="card" style="width:540px;height:880px;left:647px;top:1420px;transform:rotate(3deg);box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 5px #FF5A4E,0 0 90px rgba(229,57,53,.5)"><img src="C/image-to-image/winter_royalty.jpg"><span class="lbl">🎄 Winter Royal</span></div>
+ <div style="position:absolute;left:0;right:0;top:2380px;display:flex;justify-content:center;gap:24px;z-index:5">
+  <div class="card" style="position:relative;width:250px;height:250px;border-radius:36px"><img src="H/image-to-image/werewolf.png"></div>
+  <div class="card" style="position:relative;width:250px;height:250px;border-radius:36px"><img src="C/image-to-image/jolly_santa.jpg"></div>
+  <div class="card" style="position:relative;width:250px;height:250px;border-radius:36px"><img src="H/image-to-image/haunted_carnival.png"></div>
+  <div class="card" style="position:relative;width:250px;height:250px;border-radius:36px"><img src="H/image-to-image/spectral_ghost.png"></div>
+ </div>
+</section>
+
+<!-- 5 TYPE, CREATE, ANIMATE -->
+<section class="s" id="s5">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--pu);left:300px;top:1100px;opacity:.45"></div>
+ <div class="glow" style="width:800px;height:800px;background:var(--or);left:-300px;top:-200px;opacity:.3"></div>
+ <div class="copy">
+  <h1>Type It.<br>Create It.<br><em>Animate It.</em></h1>
+ </div>
+ <div class="steps" style="top:820px"><div class="step"><span>1</span>Describe</div><div class="step"><span>2</span>Generate</div><div class="step"><span>3</span>Video</div></div>
+ <div class="callout" style="left:80px;right:80px;top:950px;border-color:rgba(178,90,255,.65);box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 60px rgba(178,90,255,.35)">
+  <div style="font:700 28px Inter;color:var(--mut);letter-spacing:.12em;margin-bottom:14px">YOUR PROMPT</div>
+  <div style="font:600 46px/1.35 Inter">A black cat in a witch hat on a candlelit shelf<span style="color:var(--or)">|</span></div>
+ </div>
+ <div class="phone" style="left:241px;top:1230px;transform:scale(.88);transform-origin:top center"><div class="scr">
+  <div class="notch"></div><img class="full" src="H/image-to-video/blackcat.jpg">
+  <div style="position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(12px);border:4px solid rgba(255,255,255,.65);display:grid;place-items:center;font-size:80px;padding-left:14px">▶</div>
+  <div style="position:absolute;left:44px;right:44px;bottom:200px;height:12px;border-radius:6px;background:rgba(255,255,255,.25)"><div style="width:62%;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--or),var(--or2))"></div></div>
+  <div style="position:absolute;left:44px;right:44px;bottom:54px;display:flex;gap:22px"><div class="btn" style="flex:1">⬇ Save</div><div class="btn" style="flex:1;background:rgba(255,255,255,.16);box-shadow:none">↗ Share</div></div>
+ </div></div>
+ <div class="card" style="width:300px;height:450px;left:-40px;top:1820px;transform:rotate(-10deg);z-index:9"><img src="C/text-to-image/frost_dragon.jpg"></div>
+ <div class="card" style="width:300px;height:450px;left:980px;top:1700px;transform:rotate(10deg);z-index:9"><img src="H/text-to-image/friendly_ghosty.jpg"></div>
+</section>
+
+<script>
+const worlds=[['🎆',"New Year's Eve",'Dec 31','#3b2a7a','#c08b2c'],['💝',"Valentine's",'Feb','#7a1f4a','#ff4f9a'],['🏮','Lunar New Year','Jan–Feb','#7a1515','#e0a020'],['🌙','Ramadan & Eid','Spring','#14305e','#3fa0a0'],
+['☘️',"St. Patrick's",'Mar 17','#0f4a2a','#3fbf5f'],['🐣','Spring','Mar–May','#4a6a1f','#f2a6c8'],['☀️','Summer','Jun–Aug','#a04a10','#ffcf3f'],['🪔','Diwali','Oct–Nov','#6a2a0a','#ffb02e'],
+['🍂','Autumn','Sep–Nov','#6a2f0f','#d9772a'],['🔮','Fantasy','Anytime','#3a1a6a','#b25aff'],['🌃','Cyberpunk','Anytime','#101a4a','#ff3fd2'],['🧚','Fairytale','Anytime','#2a3a6a','#9fd8ff']];
+document.getElementById('minis').innerHTML=worlds.map(([e,n,m,a,b])=>`<div class="mini" style="background:linear-gradient(150deg,${a},${b}66)"><div class="e">${e}</div><div class="n">${n}</div><div class="m">${m} · Soon</div></div>`).join('');
+document.getElementById('s'+(location.hash.slice(1)||'1')).classList.add('on');
+</script></body></html>

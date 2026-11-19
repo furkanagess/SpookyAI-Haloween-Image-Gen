@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/services/profile_provider.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class ImageSelectionDialog extends StatefulWidget {
   final List<Map<String, dynamic>> images;
@@ -23,7 +24,7 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF1D162B),
+      backgroundColor: SeasonPalette.inputFill,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         constraints: const BoxConstraints(maxHeight: 600),
@@ -37,8 +38,8 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                 children: [
                   Text(
                     widget.title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: SeasonPalette.text,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -46,8 +47,8 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                   const SizedBox(height: 8),
                   Text(
                     widget.subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF8C7BA6),
+                    style: TextStyle(
+                      color: SeasonPalette.mutedText,
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,
@@ -56,7 +57,7 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
               ),
             ),
 
-            const Divider(color: Color(0xFF8C7BA6)),
+            Divider(color: SeasonPalette.mutedText),
 
             // Images Grid
             Flexible(
@@ -87,14 +88,14 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFFFF6A00)
+                              ? SeasonPalette.accent
                               : Colors.transparent,
                           width: 3,
                         ),
                         boxShadow: [
                           if (isSelected)
                             BoxShadow(
-                              color: const Color(0xFFFF6A00).withOpacity(0.3),
+                              color: SeasonPalette.accent.withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -114,7 +115,7 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                             // Selection overlay
                             if (isSelected)
                               Container(
-                                color: const Color(0xFFFF6A00).withOpacity(0.3),
+                                color: SeasonPalette.accent.withOpacity(0.3),
                                 child: const Center(
                                   child: Icon(
                                     Icons.check_circle,
@@ -135,14 +136,7 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.black.withOpacity(0.7),
-                                    ],
-                                  ),
+                                  color: Colors.transparent,
                                 ),
                                 child: Row(
                                   children: [
@@ -151,7 +145,7 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                                         image['prompt'] ?? 'Generated Image',
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 10,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                         ),
                                         maxLines: 1,
@@ -161,9 +155,9 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                                     if (image['createdAt'] != null)
                                       Text(
                                         _formatDate(image['createdAt']),
-                                        style: const TextStyle(
-                                          color: Color(0xFF8C7BA6),
-                                          fontSize: 8,
+                                        style: TextStyle(
+                                          color: SeasonPalette.mutedText,
+                                          fontSize: 12,
                                         ),
                                       ),
                                   ],
@@ -188,14 +182,14 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF8C7BA6)),
+                        side: BorderSide(color: SeasonPalette.mutedText),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Cancel',
-                        style: TextStyle(color: Color(0xFF8C7BA6)),
+                        style: TextStyle(color: SeasonPalette.mutedText),
                       ),
                     ),
                   ),
@@ -209,8 +203,8 @@ class _ImageSelectionDialogState extends State<ImageSelectionDialog> {
                               ).pop(widget.images[provider.selectedImageIndex!])
                             : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6A00),
-                          disabledBackgroundColor: const Color(0xFF8C7BA6),
+                          backgroundColor: SeasonPalette.accent,
+                          disabledBackgroundColor: SeasonPalette.mutedText,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

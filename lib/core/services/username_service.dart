@@ -15,7 +15,7 @@ class UsernameService {
     if (username.trim().isEmpty) {
       return false;
     }
-    
+
     final prefs = await SharedPreferences.getInstance();
     return await prefs.setString(_usernameKey, username.trim());
   }

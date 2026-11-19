@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SpookyAI Header</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Inter:wght@600;700&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1920px;height:823px;overflow:hidden;background:#0F0B1A;color:#fff;font-family:Inter}
+.glow{position:absolute;border-radius:50%;filter:blur(130px)}
+.card{position:absolute;border-radius:30px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.14)}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.c{position:absolute;left:560px;right:560px;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:10}
+.logo{display:flex;align-items:center;gap:16px;font:800 40px 'Bricolage Grotesque';margin-bottom:34px}
+.logo img{width:74px;height:74px;border-radius:20px;box-shadow:0 10px 30px rgba(255,106,0,.45)}
+h1{font:800 104px/.95 'Bricolage Grotesque';letter-spacing:-.035em;text-shadow:0 10px 40px rgba(0,0,0,.6)}
+h1 em{font-style:normal;background:linear-gradient(90deg,#FF6A00,#FF4F9A 30%,#B25AFF 55%,#4FC3F7 80%,#5BD16A);-webkit-background-clip:text;color:transparent}
+.sub{font:600 27px/1.4 Inter;color:#D3C6E6;margin-top:28px}
+.sub b{color:#FF9A1F;margin:0 12px}
+.orb{position:absolute;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);box-shadow:0 14px 34px rgba(0,0,0,.45);z-index:11}
+.shade{position:absolute;top:0;bottom:0;width:820px;left:550px;background:radial-gradient(ellipse at center,rgba(15,11,26,.85) 0%,rgba(15,11,26,.55) 45%,transparent 72%);z-index:5}
+</style></head><body>
+<div class="glow" style="width:900px;height:900px;background:#FF6A00;left:-200px;top:100px;opacity:.38"></div>
+<div class="glow" style="width:700px;height:700px;background:#B25AFF;left:350px;top:-350px;opacity:.5"></div>
+<div class="glow" style="width:900px;height:900px;background:#E53935;left:1250px;top:100px;opacity:.34"></div>
+<div class="glow" style="width:600px;height:600px;background:#43A047;left:1500px;top:-300px;opacity:.25"></div>
+
+<!-- Halloween fan -->
+<div class="card" style="width:270px;height:440px;left:-30px;top:250px;transform:rotate(-14deg)"><img src="H/text-to-image/pumpkin_king.png"></div>
+<div class="card" style="width:290px;height:480px;left:170px;top:150px;transform:rotate(-7deg)"><img src="H/image-to-image/vampire_noble.png"></div>
+<div class="card" style="width:300px;height:500px;left:390px;top:190px;transform:rotate(3deg);box-shadow:0 30px 70px rgba(0,0,0,.7),0 0 0 3px #FF6A00,0 0 60px rgba(255,106,0,.45)"><img src="H/image-to-image/enchantedd_witch.png"></div>
+<!-- Christmas fan -->
+<div class="card" style="width:300px;height:500px;left:1230px;top:190px;transform:rotate(-3deg);box-shadow:0 30px 70px rgba(0,0,0,.7),0 0 0 3px #FF5A4E,0 0 60px rgba(229,57,53,.45)"><img src="C/image-to-image/ice_queen.jpg"></div>
+<div class="card" style="width:290px;height:480px;left:1460px;top:150px;transform:rotate(7deg)"><img src="C/text-to-image/santa_workshop.jpg"></div>
+<div class="card" style="width:270px;height:440px;left:1680px;top:250px;transform:rotate(14deg)"><img src="C/text-to-image/reindeer.jpg"></div>
+
+<div class="shade"></div>
+<div class="orb" style="width:96px;height:96px;font-size:50px;left:640px;top:90px">🎃</div>
+<div class="orb" style="width:96px;height:96px;font-size:50px;left:1184px;top:90px">🎄</div>
+<div class="orb" style="width:78px;height:78px;font-size:40px;left:660px;top:660px">💝</div>
+<div class="orb" style="width:78px;height:78px;font-size:40px;left:1182px;top:660px">🎆</div>
+<div class="orb" style="width:66px;height:66px;font-size:34px;left:770px;top:720px">🌸</div>
+<div class="orb" style="width:66px;height:66px;font-size:34px;left:1084px;top:720px">🪔</div>
+
+<div class="c">
+ <div class="logo"><img src="ICON/app_icon.png">SpookyAI</div>
+ <h1>AI Art for<br><em>Every Season</em></h1>
+ <div class="sub">Text to Image<b>•</b>Selfie Art<b>•</b>Photo to Video</div>
+</div>
+</body></html>

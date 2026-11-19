@@ -1,17 +1,25 @@
+import 'package:in_app_review/in_app_review.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/token_display_widget.dart';
-import '../../../../core/widgets/rewarded_ad_widget.dart';
 import '../../../../core/services/profile_provider.dart';
+import '../../../../core/services/app_icon_service.dart';
+import '../../../../core/services/ambient_sound_service.dart';
+import '../../../../core/theme/seasons/season_registry.dart';
+import '../../../../core/theme/seasons/season_theme.dart';
 import '../../../../core/services/version_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/platform_utils.dart';
+import '../../../../core/widgets/app_bar_title.dart';
 import '../../../../core/theme/app_metrics.dart';
-import 'spin_page.dart';
 import 'purchase_page.dart';
-import 'stats_page.dart';
+import 'app_icon_page.dart';
+import '../../../../core/theme/seasons/season_provider.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
+import '../../../tour/product_tour.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -25,6 +33,8 @@ class _ProfilePageState extends State<ProfilePage>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  bool _appIconSupported = false;
+  SeasonId _appIcon = SeasonId.halloween;
 
   @override
   void initState() {
@@ -33,6 +43,19 @@ class _ProfilePageState extends State<ProfilePage>
     // Load profile data through provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileProvider>().loadProfileData();
+    });
+    _loadAppIcon();
+  }
+
+  Future<void> _loadAppIcon() async {
+    final supported = await AppIconService.isSupported();
+    final current = supported
+        ? await AppIconService.current()
+        : SeasonId.halloween;
+    if (!mounted) return;
+    setState(() {
+      _appIconSupported = supported;
+      _appIcon = current;
     });
   }
 
@@ -60,177 +83,324 @@ class _ProfilePageState extends State<ProfilePage>
     super.dispose();
   }
 
+  // ------------------------------------------------------------- sections
 
+  void _openPurchase() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
 
-  // Daily reward feature removed
+  /// A titled group of rows on one soft surface; rows are divided by an
+  /// inset hairline instead of being cards of their own.
+  Widget _group(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            title.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.8,
+              color: SeasonPalette.text.withOpacity(0.45),
+            ),
+          ),
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            color: SeasonPalette.inputFill,
+            child: Column(
+              children: [
+                for (var i = 0; i < children.length; i++) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      indent: 62,
+                      color: SeasonPalette.text.withOpacity(0.07),
+                    ),
+                  children[i],
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-  Widget _buildActionsSection(ProfileProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget _row({
+    required IconData icon,
+    required Color color,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap();
+            },
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 60),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withOpacity(0.16),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(
-                  Icons.flash_on,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Quick Actions',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              // Daily reward removed
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Rewarded Ad Widget
-          const RewardedAdWidget(
-            customMessage:
-                'Watch ads to earn free tokens for image generation!',
-          ),
-          const SizedBox(height: 20),
-
-          // Navigation Buttons
-          Row(
-            children: [
+              const SizedBox(width: 14),
               Expanded(
-                child: _buildNavigationButton(
-                  imagePath: 'assets/images/spinwheel.png',
-                  title: 'Spin Wheel',
-                  subtitle: 'Try your luck',
-                  onTap: () {
-                    Navigator.of(context)
-                        .push(
-                          MaterialPageRoute(builder: (_) => const SpinPage()),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: SeasonPalette.text.withOpacity(0.55),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              trailing ??
+                  (onTap != null
+                      ? Icon(
+                          Icons.chevron_right_rounded,
+                          color: SeasonPalette.text.withOpacity(0.3),
                         )
-                        .then((_) {
-                          provider.refreshProfileData();
-                        });
-                  },
-                  color: const Color(0xFFFF6A00),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildNavigationButton(
-                  imagePath: 'assets/images/statistics.png',
-                  title: 'Statistics',
-                  subtitle: 'View your stats',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const StatsPage()),
-                    );
-                  },
-                  color: const Color(0xFF2196F3),
-                ),
-              ),
+                      : const SizedBox.shrink()),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // _buildDailyRewardButton removed
+  Widget _buildWorldGroup() {
+    final season = context.watch<SeasonProvider>();
 
-  Widget _buildSupportSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
+    Widget segment(ThemeMode mode, IconData icon, String label) {
+      final selected = season.themeMode == mode;
+      return Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (selected) return;
+            HapticFeedback.selectionClick();
+            season.setThemeMode(mode);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
-              ),
+              color: selected ? SeasonPalette.accent : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.support_agent,
-              color: Colors.white,
-              size: 18,
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              size: 17,
+              color: selected
+                  ? Colors.white
+                  : SeasonPalette.text.withOpacity(0.55),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+      );
+    }
+
+    return _group('Appearance', [
+      KeyedSubtree(
+        key: ProductTourKeys.themeMode,
+        child: _row(
+          icon: switch (season.themeMode) {
+            ThemeMode.light => Icons.light_mode_rounded,
+            ThemeMode.dark => Icons.dark_mode_rounded,
+            ThemeMode.system => Icons.brightness_auto_rounded,
+          },
+          color: const Color(0xFFFFC107),
+          title: 'Theme',
+          subtitle: switch (season.themeMode) {
+            ThemeMode.light => 'Light',
+            ThemeMode.dark => 'Dark',
+            ThemeMode.system => 'Follows your device',
+          },
+          trailing: Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: SeasonPalette.text.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Support',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                segment(
+                  ThemeMode.system,
+                  Icons.brightness_auto_rounded,
+                  'System',
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'spookyaihelp@gmail.com',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                segment(ThemeMode.light, Icons.light_mode_rounded, 'Light'),
+                segment(ThemeMode.dark, Icons.dark_mode_rounded, 'Dark'),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _copyEmailToClipboard(),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2196F3), Color(0xFF9C27B0)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.copy_outlined,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
+      KeyedSubtree(
+        key: ProductTourKeys.effects,
+        child: _row(
+          icon: Icons.auto_awesome_rounded,
+          color: const Color(0xFF4FC3F7),
+          title: 'Theme effects',
+          subtitle: 'Falling snow, embers and more on every screen',
+          trailing: Switch(
+            value: season.effectsEnabled,
+            activeThumbColor: SeasonPalette.accent,
+            onChanged: (v) {
+              HapticFeedback.selectionClick();
+              season.setEffectsEnabled(v);
+            },
+          ),
+        ),
+      ),
+      KeyedSubtree(key: ProductTourKeys.sound, child: _buildSoundRow()),
+      if (_appIconSupported)
+        KeyedSubtree(
+          key: ProductTourKeys.appIcon,
+          child: _row(
+            icon: Icons.apps_rounded,
+            color: const Color(0xFFAB47BC),
+            title: 'App icon',
+            subtitle: SeasonRegistry.byId(_appIcon).displayName,
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: SeasonPalette.text.withOpacity(0.4),
+            ),
+            onTap: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const AppIconPage()));
+              _loadAppIcon();
+            },
+          ),
+        ),
+    ]);
+  }
+
+  Widget _buildSoundRow() {
+    final sound = context.watch<AmbientSoundController>();
+    final on = sound.enabled;
+    return Column(
+      children: [
+        _row(
+          icon: on && sound.volume > 0
+              ? Icons.music_note_rounded
+              : Icons.music_off_rounded,
+          color: const Color(0xFFEC407A),
+          title: 'Theme sound',
+          subtitle: sound.hasSoundForSeason
+              ? 'Ambient music for the current season'
+              : 'No sound for this season yet',
+          trailing: Switch(
+            value: on,
+            activeThumbColor: SeasonPalette.accent,
+            onChanged: (v) {
+              HapticFeedback.selectionClick();
+              sound.setEnabled(v);
+            },
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: on
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(52, 0, 12, 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.volume_down_rounded,
+                        size: 20,
+                        color: SeasonPalette.text.withOpacity(0.45),
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: sound.volume,
+                          activeColor: SeasonPalette.accent,
+                          inactiveColor: SeasonPalette.text.withOpacity(0.12),
+                          label: '${(sound.volume * 100).round()}%',
+                          divisions: 20,
+                          semanticFormatterCallback: (v) =>
+                              'Volume ${(v * 100).round()} percent',
+                          onChanged: sound.setVolume,
+                          onChangeEnd: (_) => sound.saveVolume(),
+                        ),
+                      ),
+                      Icon(
+                        Icons.volume_up_rounded,
+                        size: 20,
+                        color: SeasonPalette.text.withOpacity(0.45),
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
     );
+  }
+
+  Widget _buildHelpGroup() {
+    return _group('Help', [
+      _row(
+        icon: Icons.support_agent_rounded,
+        color: const Color(0xFF26A69A),
+        title: 'Contact support',
+        subtitle: 'spookyaihelp@gmail.com',
+        trailing: Icon(
+          Icons.copy_rounded,
+          size: 20,
+          color: SeasonPalette.text.withOpacity(0.4),
+        ),
+        onTap: _copyEmailToClipboard,
+      ),
+      _row(
+        icon: Icons.star_rounded,
+        color: const Color(0xFFFFC107),
+        title: 'Rate SpookyAI',
+        subtitle: PlatformUtils.isAndroid
+            ? 'Enjoying it? Rate us on Google Play'
+            : 'Enjoying it? Rate us on the App Store',
+        onTap: _requestInAppReview,
+      ),
+    ]);
   }
 
   Future<void> _copyEmailToClipboard() async {
@@ -244,105 +414,57 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
-  Widget _buildRateAppSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-              ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.star_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Rate App',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Enjoying SpookyAI? Rate us!',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _openStorePage(),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      PlatformUtils.isAndroid ? 'Play' : 'App Store',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  static const String _androidPackageId = 'com.furkanages.spookyai';
+
+  /// Tries each URL in turn and stops at the first one that actually opens.
+  /// `canLaunchUrl` alone is not trusted here: on Android 11+ it can
+  /// wrongly report false for a scheme that `launchUrl` would still open,
+  /// unless the manifest declares that scheme under `<queries>` (see
+  /// AndroidManifest.xml) — so every candidate is attempted directly.
+  Future<bool> _tryLaunch(List<String> urls) async {
+    for (final url in urls) {
+      try {
+        final uri = Uri.parse(url);
+        if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+          return true;
+        }
+      } catch (_) {
+        // Try the next candidate.
+      }
+    }
+    return false;
+  }
+
+  /// Shows the system rating sheet inside the app (StoreKit on iOS, Play
+  /// In-App Review on Android). The OS may skip it (quota, no Play
+  /// services), so fall back to the store listing then.
+  Future<void> _requestInAppReview() async {
+    final review = InAppReview.instance;
+    try {
+      if (await review.isAvailable()) {
+        await review.requestReview();
+        return;
+      }
+    } catch (_) {}
+    await _openStorePage();
   }
 
   Future<void> _openStorePage() async {
-    String storeUrl;
-    
+    List<String> urls;
+
     if (PlatformUtils.isAndroid) {
-      // Google Play Store
-      storeUrl = 'https://play.google.com/store/apps/details?id=com.furkanages.spookyai';
+      urls = [
+        // The Play Store app itself, if installed: no browser hop, and the
+        // most reliable path on Android.
+        'market://details?id=$_androidPackageId',
+        // Falls back to the web listing (also opens the Play Store app on
+        // most devices via an app link, or a browser otherwise).
+        'https://play.google.com/store/apps/details?id=$_androidPackageId',
+      ];
     } else if (PlatformUtils.isIOS) {
-      // App Store
-      storeUrl = 'https://apps.apple.com/us/app/spookyai-halloween-image-gen/id6753217831';
+      urls = [
+        'https://apps.apple.com/us/app/spookyai-halloween-image-gen/id6753217831',
+      ];
     } else {
       if (mounted) {
         NotificationService.error(
@@ -353,224 +475,61 @@ class _ProfilePageState extends State<ProfilePage>
       return;
     }
 
-    try {
-      final Uri uri = Uri.parse(storeUrl);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          NotificationService.error(
-            context,
-            message: 'Could not open store page. Please try again later.',
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        NotificationService.error(
-          context,
-          message: 'Could not open store page. Please try again later.',
-        );
-      }
+    final opened = await _tryLaunch(urls);
+    if (!opened && mounted) {
+      NotificationService.error(
+        context,
+        message: 'Could not open store page. Please try again later.',
+      );
     }
   }
-
-  Widget _buildNavigationButton({
-    String? imagePath,
-    IconData? icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: imagePath != null
-                    ? Image.asset(
-                        imagePath,
-                        width: 24,
-                        height: 24,
-                        fit: BoxFit.contain,
-                      )
-                    : Icon(icon ?? Icons.info, color: color, size: 24),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: color.withOpacity(0.8),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Icon(
-                Icons.arrow_forward,
-                color: color.withOpacity(0.6),
-                size: 16,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  // _activatePremiumDemo removed (unused)
-
-  // _deactivatePremiumDemo removed (unused)
-
-  // _openPremiumTesterMenu removed (unused)
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ProfileProvider>(
       builder: (context, provider, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF0F0B1A),
+          backgroundColor: SeasonPalette.scaffold,
           appBar: AppBar(
-            title: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Profile',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
+            title: const AppBarTitle(
+              icon: Icons.person_rounded,
+              title: 'Profile',
             ),
-            backgroundColor: const Color(0xFF0F0B1A),
+            backgroundColor: SeasonPalette.scaffold,
             elevation: 0,
             toolbarHeight: AppMetrics.toolbarHeight,
-            actions: [
-              // Premium toggle button
-              // Container(
-              //   margin: const EdgeInsets.only(right: 8),
-              //   child: IconButton(
-              //     onPressed: _openPremiumTesterMenu,
-              //     icon: Icon(
-              //       provider.isPremium ? Icons.star : Icons.star_border,
-              //       color: provider.isPremium
-              //           ? const Color(0xFFFF6A00)
-              //           : Colors.white,
-              //     ),
-              //     tooltip: 'Premium Tester',
-              //   ),
-              // ),
-              TokenDisplayWidget(
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PurchasePage()),
-                  );
-                },
-              ),
-            ],
+            actions: [TokenDisplayWidget(onTap: _openPurchase)],
           ),
-          body: Stack(
-            children: [
-              // Background decorations
-              Positioned(
-                bottom: 40,
-                left: 20,
-                child: Opacity(
-                  opacity: 0.06,
-                  child: Text('🕸️', style: TextStyle(fontSize: 80)),
-                ),
-              ),
-              Positioned(
-                top: 60,
-                right: 20,
-                child: Opacity(
-                  opacity: 0.04,
-                  child: Text('🎃', style: TextStyle(fontSize: 60)),
-                ),
-              ),
-              Positioned(
-                top: 120,
-                left: 40,
-                child: Opacity(
-                  opacity: 0.04,
-                  child: Text('🕷️', style: TextStyle(fontSize: 50)),
-                ),
-              ),
-
-              // Main content
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: provider.isLoading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFFF6A00),
-                          ),
-                        )
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              _buildActionsSection(provider),
-                              const SizedBox(height: 20),
-                              _buildSupportSection(),
-                              const SizedBox(height: 20),
-                              _buildRateAppSection(),
-                              const SizedBox(height: 20),
-                              _buildVersionInfo(),
-                              const SizedBox(height: 20), // Bottom padding
-                            ],
-                          ),
-                        ),
-                ),
-              ),
-            ],
+          body: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: provider.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: SeasonPalette.accent,
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        8,
+                        16,
+                        24 + MediaQuery.of(context).padding.bottom,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildWorldGroup(),
+                          const SizedBox(height: 24),
+                          _buildHelpGroup(),
+                          const SizedBox(height: 20),
+                          _buildVersionInfo(),
+                        ],
+                      ),
+                    ),
+            ),
           ),
         );
       },
@@ -581,78 +540,19 @@ class _ProfilePageState extends State<ProfilePage>
     return FutureBuilder<Map<String, String>>(
       future: VersionService.getVersionInfo(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
-
-        final versionInfo = snapshot.data!;
-        final version = versionInfo['version'] ?? '1.1.0';
-        final buildNumber = versionInfo['buildNumber'] ?? '15';
-        final isDebug = versionInfo['isDebug'] == 'true';
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1D162B).withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.white.withOpacity(0.7),
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Version $version ($buildNumber)',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (isDebug) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: Colors.orange.withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        'DEBUG',
-                        style: TextStyle(
-                          color: Colors.orange,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'SpookyAI - AI-Powered Halloween Image Generator',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 10,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+        if (!snapshot.hasData) return const SizedBox(height: 8);
+        final info = snapshot.data!;
+        final version = info['version'] ?? '1.1.0';
+        final build = info['buildNumber'] ?? '15';
+        return Padding(
+          padding: const EdgeInsets.only(top: 4, bottom: 8),
+          child: Text(
+            'SpookyAI $version ($build)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: SeasonPalette.text.withOpacity(0.35),
+              fontSize: 12,
+            ),
           ),
         );
       },

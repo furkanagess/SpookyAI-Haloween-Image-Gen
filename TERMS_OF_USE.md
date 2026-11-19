@@ -52,11 +52,11 @@ All pricing is displayed in your local currency and may vary by region. Prices a
 
 ### 4.4 Auto-Renewal
 
-Premium subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage your subscription in your Apple ID account settings.
+Premium subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period. You can manage your subscription in your Apple ID account settings (iOS) or Google Play subscriptions (Android).
 
 ### 4.5 Cancellation
 
-You may cancel your subscription at any time through your Apple ID account settings. Cancellation takes effect at the end of the current billing period.
+You may cancel your subscription at any time through your Apple ID account settings (iOS) or Google Play subscriptions (Android). Cancellation takes effect at the end of the current billing period.
 
 ## 5. User Responsibilities
 
@@ -135,7 +135,7 @@ If any provision of these Terms is found to be unenforceable, the remaining prov
 
 If you have questions about these Terms of Use, please contact us:
 
-- **Email**: legal@spookyai.com
+- **Email**: spookyaihelp@gmail.com
 - **Address**: [Your Company Address]
 - **Phone**: [Your Contact Number]
 
@@ -157,7 +157,7 @@ All in-app purchases are processed by Apple. Apple's terms and conditions apply 
 
 ### 16.4 Subscription Management
 
-You can manage your subscriptions through your Apple ID account settings in the App Store.
+You can manage your subscriptions through your Apple ID account settings in the App Store, or in Google Play subscriptions on Android.
 
 ## 17. Entire Agreement
 

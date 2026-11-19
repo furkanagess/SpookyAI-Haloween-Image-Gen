@@ -1,205 +1,77 @@
-# Privacy Policy for SpookyAI
+# SpookyAI Privacy Policy
 
-**Last Updated: December 2024**
+**Effective date:** November 15, 2026
 
-## Introduction
+SpookyAI ("we", "our", "us") is an AI photo and art app. This policy explains what data the SpookyAI mobile app (the "App") handles, why, who processes it and what choices you have.
 
-SpookyAI ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application (the "App").
+**In short:** SpookyAI has no user accounts. Your creations are stored on your own device. The photos and prompts you submit are sent to our AI provider only to create your image or video. We do not sell your data, show ads or track you across other apps.
 
-## Information We Collect
+## 1. Data we handle
 
-### 1. Personal Information
+| Data | When | Why |
+|---|---|---|
+| **Photos you upload** (they may show faces) | Image-to-image and photo-to-video | To create the result you asked for |
+| **Prompts** (text you type or a ready-made style you pick) | Every generation | To create the result you asked for |
+| **Generated images and videos** | Every generation | Saved **only on your device** (My Photos) |
+| **Ratings** (1–5 stars, the prompt, style name, app version, platform) | When you rate a result | To improve styles and quality |
+| **Content reports** (prompt, reason, optional details, the reported image if small enough) | When you report a result | To review and act on harmful content |
+| **Device identifier** (Android ID or an app-specific iOS Keychain ID) | First free-token trial, ratings, reports | To prevent trial and reward abuse and to limit report spam |
+| **Purchase information** (product, transaction and subscription status) | When you buy tokens or Premium | To deliver and restore purchases |
+| **Token balance and app settings** | While you use the App | Stored on your device |
 
-- **Account Information**: Email address (if you create an account)
-- **Usage Data**: App usage patterns, feature interactions, and performance metrics
-- **Device Information**: Device type, operating system, and app version
+We do **not** collect your name, email address, contacts, location, advertising ID or browsing history. We do not use your photos or face data to identify you, for facial recognition, or to train AI models.
 
-### 2. Generated Content
+## 2. How photos and face data are processed
 
-- **Images**: AI-generated images you create using our service
-- **Prompts**: Text prompts you input for image generation
-- **Uploaded Images**: Photos you upload for image-to-image transformations
+When you generate an image or video, your photo and prompt are sent over an encrypted connection to our server proxy (hosted on Cloudflare). The proxy forwards them to **fal.ai**, our AI generation provider, and returns the result to your device. The proxy does not keep your photos or prompts.
 
-### 3. Technical Information
+fal.ai processes this content only to produce your result. Generated files may be stored temporarily by fal.ai so the App can download them. After that, the result exists only on your device unless you share it. Photos that show faces are used only to create the result you requested and are never used to identify you or kept by us.
 
-- **API Usage**: Requests made to our AI image generation services
-- **Error Logs**: Technical logs for app performance and debugging
-- **Analytics**: Anonymous usage statistics to improve our service
+## 3. Service providers
 
-### 4. Content Moderation Data
+| Provider | Purpose | Data |
+|---|---|---|
+| **fal.ai** | AI image and video generation | Uploaded photos, prompts, generated results |
+| **Cloudflare** (Workers) | Secure proxy and one-trial-per-device check | Requests in transit; a salted SHA-256 hash of the device ID for the trial check |
+| **Google Firebase** (Cloud Firestore) | Ratings and content reports | The rating and report data listed above, device ID |
+| **RevenueCat**, **Apple App Store**, **Google Play** | Purchases and subscriptions | Purchase and subscription data, an anonymous app user ID |
 
-- **Report Information**: Details about content reports submitted by users
-- **Moderation Actions**: Records of content moderation decisions and actions taken
-- **Appeal Data**: Information related to appeals of moderation decisions
+Each provider processes data under its own privacy policy and only as needed to provide its service to us.
 
-## How We Use Your Information
+## 4. Retention
 
-### 1. Service Provision
+- **Your creations, settings and token balance** stay on your device until you delete them or uninstall the App.
+- **Ratings** are kept for up to 2 years.
+- **Content reports** are kept for up to 2 years for review, enforcement and appeals.
+- **Trial hashes** are kept as long as needed to prevent repeated free trials.
 
-- Generate AI images based on your prompts
-- Process uploaded images for transformations
-- Maintain your account and preferences
-- Provide customer support
+## 5. Your choices and rights
 
-### 2. Service Improvement
+- Delete any creation in **My Photos**, or uninstall the App to remove all local data.
+- Photo and camera access can be turned off at any time in your device settings.
+- Manage or cancel subscriptions in your App Store or Google Play account settings.
+- To ask about, get a copy of, or delete the ratings and reports linked to your device, email us with the request (you can find your device's app version in Settings). Depending on where you live (for example under the GDPR or the CCPA), you may also have the right to access, correct, delete or object to the processing of your data. We will respond within 30 days.
 
-- Analyze usage patterns to improve app functionality
-- Optimize AI model performance
-- Fix bugs and enhance user experience
+## 6. Content safety
 
-### 3. Communication
+Prompts are checked by automated moderation before generation. You can report any generated result from inside the App. Reports are reviewed, and we may block prompts or styles that break our rules. See our [Terms of Use](TERMS_OF_USE.md) and content guidelines.
 
-- Send important app updates and notifications
-- Respond to your inquiries and support requests
-- Provide service-related announcements
+## 7. Children
 
-### 4. Content Moderation
+SpookyAI is not directed to children under 13 (or the minimum age required in your country), and we do not knowingly collect their data. If you believe a child has used the App, contact us and we will delete any related data.
 
-- Review and process content reports submitted by users
-- Take appropriate action on reported content
-- Maintain records for moderation and enforcement purposes
-- Improve our content filtering and moderation systems
+## 8. Security
 
-## Data Storage and Security
+All data is sent over encrypted connections (HTTPS). AI provider keys live only on our server proxy, never in the App. Ratings and reports cannot be read or changed by any user of the App.
 
-### 1. Local Storage
+## 9. International transfers
 
-- Generated images are stored locally on your device
-- App preferences and settings are stored locally
-- No personal data is stored on our servers without your consent
+Our providers may process data in the United States and other countries. Where required, transfers rely on appropriate safeguards such as Standard Contractual Clauses.
 
-### 2. Cloud Storage (Optional)
+## 10. Changes
 
-- You may choose to sync your generated images across devices
-- Cloud storage is encrypted and secure
-- You can disable cloud sync at any time
+We may update this policy as the App changes. We will update the effective date above and, for significant changes, tell you in the App.
 
-### 3. Security Measures
+## 11. Contact
 
-- All data transmission is encrypted using industry-standard protocols
-
-### 4. Content Moderation Data Storage
-
-- **Report Data**: Content reports are stored securely and accessed only by authorized moderation staff
-- **Retention Period**: Report data is retained for up to 2 years for enforcement and appeal purposes
-- **Anonymization**: Personal identifiers are removed from reports when possible
-- **Access Control**: Strict access controls limit who can view moderation data
-
-## Third-Party Services
-
-### 1. AI Image Generation
-
-- We use Stability AI's services for image generation
-- Your prompts and uploaded images are sent to Stability AI for processing
-- Stability AI's privacy policy applies to their processing of your data
-
-### 2. Analytics
-
-- We use anonymous analytics to understand app usage
-- No personally identifiable information is shared
-- You can opt-out of analytics in app settings
-
-### 3. Payment Processing
-
-- Payment information is processed by secure third-party providers
-- We do not store your payment details
-- Payment providers have their own privacy policies
-
-## Your Rights and Choices
-
-### 1. Data Access
-
-- View all data we have collected about you
-- Export your generated images and prompts
-- Request a copy of your personal information
-
-### 2. Data Deletion
-
-- Delete your account and associated data
-- Remove specific generated images
-- Clear all local app data
-
-### 3. Data Portability
-
-- Export your generated content
-- Transfer your data to another service
-- Download your images and prompts
-
-### 4. Content Moderation Rights
-
-- **Report Content**: You can report inappropriate content through our in-app reporting system
-- **Appeal Decisions**: You can appeal content moderation decisions
-- **Request Review**: You can request review of content that was removed or flagged
-- **Privacy Protection**: Your identity is protected when making good-faith reports
-
-## Children's Privacy
-
-- Our app is not intended for children under 13
-- We do not knowingly collect personal information from children under 13
-- If we discover such information, we will delete it immediately
-
-## International Users
-
-- Your data may be processed in countries other than your own
-- We ensure adequate protection for international data transfers
-- We comply with applicable international privacy laws
-
-## Updates to This Policy
-
-- We may update this Privacy Policy from time to time
-- We will notify you of significant changes
-- Continued use of the app constitutes acceptance of updates
-
-## Contact Information
-
-If you have questions about this Privacy Policy or our data practices, please contact us:
-
-- **Email**: privacy@spookyai.com
-- **Address**: [Your Company Address]
-- **Phone**: [Your Contact Number]
-
-## Data Retention
-
-- Account data: Retained until account deletion
-- Generated images: Stored locally on your device
-- Analytics data: Retained for up to 2 years
-- Support communications: Retained for up to 3 years
-
-## Your Consent
-
-By using SpookyAI, you consent to:
-
-- The collection and use of information as described in this policy
-- The processing of your images for AI generation
-- The sharing of data with third-party services as outlined above
-
-## California Privacy Rights (CCPA)
-
-If you are a California resident, you have additional rights:
-
-- Right to know what personal information we collect
-- Right to delete personal information
-- Right to opt-out of the sale of personal information
-- Right to non-discrimination for exercising your privacy rights
-
-## European Union (GDPR) Rights
-
-If you are in the EU, you have additional rights:
-
-- Right of access to your personal data
-- Right to rectification of inaccurate data
-- Right to erasure ("right to be forgotten")
-- Right to restrict processing
-- Right to data portability
-- Right to object to processing
-
-## Changes to This Policy
-
-We reserve the right to modify this Privacy Policy at any time. Changes will be posted on this page with an updated revision date. We encourage you to review this Privacy Policy periodically.
-
----
-
-**Effective Date**: December 2024  
-**Version**: 1.0
-
-This Privacy Policy is effective as of the date listed above and will remain in effect except with respect to any changes in its provisions in the future, which will be in effect immediately after being posted on this page.
+**Email:** spookyaihelp@gmail.com

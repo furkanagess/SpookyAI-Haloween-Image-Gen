@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../theme/seasons/season_palette.dart';
 
 class AvatarService {
   AvatarService._();
@@ -145,12 +146,24 @@ class AvatarService {
   /// Get list of default avatar options
   static List<Map<String, dynamic>> getDefaultAvatars() {
     return [
-      {'name': 'ghost', 'icon': '👻', 'displayName': 'Ghost'},
-      {'name': 'pumpkin', 'icon': '🎃', 'displayName': 'Pumpkin'},
-      {'name': 'witch', 'icon': '🧙‍♀️', 'displayName': 'Witch'},
-      {'name': 'spider', 'icon': '🕷️', 'displayName': 'Spider'},
-      {'name': 'bat', 'icon': '🦇', 'displayName': 'Bat'},
-      {'name': 'skull', 'icon': '💀', 'displayName': 'Skull'},
+      {'name': 'ghost', 'icon': SeasonPalette.t('👻'), 'displayName': 'Ghost'},
+      {
+        'name': 'pumpkin',
+        'icon': SeasonPalette.t('🎃'),
+        'displayName': 'Pumpkin',
+      },
+      {
+        'name': 'witch',
+        'icon': SeasonPalette.t('🧙‍♀️'),
+        'displayName': 'Witch',
+      },
+      {
+        'name': 'spider',
+        'icon': SeasonPalette.t('🕷️'),
+        'displayName': 'Spider',
+      },
+      {'name': 'bat', 'icon': SeasonPalette.t('🦇'), 'displayName': 'Bat'},
+      {'name': 'skull', 'icon': SeasonPalette.t('💀'), 'displayName': 'Skull'},
     ];
   }
 }

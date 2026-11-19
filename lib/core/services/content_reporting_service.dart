@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'trial_guard_service.dart';
+import 'version_service.dart';
 
 /// Report categories for different types of content violations
 enum ReportCategory {
@@ -154,6 +159,13 @@ class ContentReportingService {
         imageId: imageId,
       );
 
+      // The report must reach the developer for review (Play AI-generated
+      // content policy, App Store 1.2). Fail if it cannot be delivered so
+      // the user can retry instead of believing it was sent.
+      if (!await _upload(report)) {
+        return false;
+      }
+
       reports.add(report);
 
       // Save reports
@@ -174,6 +186,44 @@ class ContentReportingService {
       if (kDebugMode) {
         print('Error submitting content report: $e');
       }
+      return false;
+    }
+  }
+
+  static const collection = 'content_reports';
+
+  /// Firestore documents are capped at 1 MiB; larger images are sent
+  /// without pixels (the prompt, image id and reason still identify them).
+  static const int _maxInlineImageBytes = 600 * 1024;
+
+  static Future<bool> _upload(ContentReport report) async {
+    if (Firebase.apps.isEmpty) return false;
+    try {
+      final version = await VersionService.getVersionInfo();
+      final bytes = report.imageBytes;
+      final inlineImage = bytes != null && bytes.length <= _maxInlineImageBytes;
+      final details = report.additionalDetails;
+      await FirebaseFirestore.instance.collection(collection).add({
+        'prompt': report.prompt.length > 4000
+            ? report.prompt.substring(0, 4000)
+            : report.prompt,
+        'category': report.category.name,
+        'reason': report.reason.name,
+        'details': details == null
+            ? null
+            : (details.length > 2000 ? details.substring(0, 2000) : details),
+        'imageId': report.imageId,
+        'imageBase64': inlineImage ? base64Encode(bytes) : null,
+        'hasImage': bytes != null,
+        'deviceId': await TrialGuardService.deviceId(),
+        'platform': defaultTargetPlatform.name,
+        'appVersion': version['fullVersion'],
+        'status': 'open',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('Content report upload failed: $e');
       return false;
     }
   }

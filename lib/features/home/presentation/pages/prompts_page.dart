@@ -1,1163 +1,1009 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/services/notification_service.dart';
+
+import '../../../../core/config/prompt_preview_assets.dart';
+import '../../../../core/services/main_navigation_provider.dart';
 import '../../../../core/services/prompts_provider.dart';
+import '../../../../core/widgets/app_bar_title.dart';
 import '../../../../core/theme/app_metrics.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 import '../../../../core/widgets/token_display_widget.dart';
 import '../../data/models/prompt_category.dart';
-import '../../data/models/user_prompt.dart';
-import '../../data/services/prompt_service.dart';
-import '../widgets/add_prompt_dialog.dart';
+import '../../domain/generation_mode.dart';
+import '../widgets/prompt_detail_sheet.dart';
+import '../widgets/prompt_preview.dart';
 import 'purchase_page.dart';
+import '../widgets/masonry_grid.dart';
 
+enum _Filter { text, realistic, fantasy, favorites }
+
+/// Flat prompt library: every prompt is one card with a sample picture,
+/// title, prompt preview and type. One mode filter, no sub-genres.
 class PromptsPage extends StatefulWidget {
-  final Function(String)? onPromptSelected;
+  const PromptsPage({super.key, this.onUseStyle, this.filterRequest});
 
-  const PromptsPage({super.key, this.onPromptSelected});
+  /// Asks the page to jump to a mode's section (set by the Generate screen).
+  final ValueNotifier<GenerationMode?>? filterRequest;
+
+  /// Called when the user picks a style. The style's prompt stays inside the
+  /// app; the Generate screen only shows its title and preview.
+  final void Function(PromptItem style)? onUseStyle;
 
   @override
   State<PromptsPage> createState() => _PromptsPageState();
 }
 
-class _PromptsPageState extends State<PromptsPage>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  String? _selectedSubcategory;
+class _PromptsPageState extends State<PromptsPage> {
+  final TextEditingController _search = TextEditingController();
+  _Filter _filter = _Filter.text;
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 4, // Text to Image, Image to Image, Popular, My Prompts
-      vsync: this,
-    );
-    _tabController.addListener(() {
-      // Reset subcategory filter when switching tabs
-      setState(() {
-        _selectedSubcategory = null;
-      });
-    });
-    // Load data through provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PromptsProvider>().loadUserPrompts();
+    widget.filterRequest?.addListener(_onFilterRequest);
+  }
+
+  void _onFilterRequest() {
+    final mode = widget.filterRequest?.value;
+    if (mode == null) return;
+    widget.filterRequest!.value = null;
+    _search.clear();
+    setState(() {
+      _query = '';
+      _filter = mode == GenerationMode.image ? _Filter.realistic : _Filter.text;
     });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
+    widget.filterRequest?.removeListener(_onFilterRequest);
+    _search.dispose();
     super.dispose();
   }
 
-  void _onSearch(String query) async {
-    await context.read<PromptsProvider>().searchPrompts(query);
-  }
+  // ---------------------------------------------------------------- actions
 
-  void _onPromptTap(PromptItem prompt, PromptsProvider provider) async {
-    // Check if prompt is premium and user is not premium
-    if (provider.isPromptLocked(prompt)) {
+  void _useBuiltIn(PromptItem item, PromptsProvider provider) {
+    if (provider.isPromptLocked(item)) {
       _showPremiumRequiredDialog();
       return;
     }
-
-    if (widget.onPromptSelected != null) {
-      widget.onPromptSelected!(prompt.prompt);
-    } else {
-      // Navigate based on prompt type
-      if (prompt.promptType == PromptType.imageToImage) {
-        _navigateToImageToImage(prompt.prompt);
-      } else {
-        // Navigate to text-to-image mode
-        _navigateToTextToImage(prompt.prompt);
-      }
-    }
+    widget.onUseStyle?.call(item);
   }
 
-  void _navigateToImageToImage(String prompt) {
-    // Navigate to the main navigation page with image-to-image mode
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/main',
-      (route) => false,
-      arguments: {'mode': 'image', 'prompt': prompt},
-    );
-  }
-
-  void _navigateToTextToImage(String prompt) {
-    // Navigate to the main navigation page with text-to-image mode
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/main',
-      (route) => false,
-      arguments: {'mode': 'text', 'prompt': prompt},
-    );
-  }
-
-  Widget _buildSubcategoryChip(String label, String? subcategory) {
-    final isSelected = _selectedSubcategory == subcategory;
-    return Container(
-      margin: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF8C7BA6),
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-        selected: isSelected,
-        onSelected: (selected) {
-          setState(() {
-            _selectedSubcategory = selected ? subcategory : null;
-          });
-        },
-        backgroundColor: const Color(0xFF1D162B),
-        selectedColor: const Color(0xFFFF6A00),
-        checkmarkColor: Colors.white,
-        side: BorderSide(
-          color: isSelected
-              ? const Color(0xFFFF6A00)
-              : const Color(0xFF8C7BA6).withOpacity(0.3),
-          width: 1,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+  void _openBuiltIn(PromptItem item, PromptsProvider provider) {
+    final locked = provider.isPromptLocked(item);
+    showPromptDetailSheet(
+      context,
+      detail: PromptDetail(
+        title: item.title,
+        tags: item.tags,
+        tagline: item.tagline,
+        description: item.description,
+        mode: item.promptType == PromptType.imageToImage
+            ? GenerationMode.image
+            : GenerationMode.text,
+        preview: _previewFor(item, radius: 0),
+        isPopular: item.isPopular,
+        isLocked: locked,
+        isFavorite: provider.isFavorite(item.id),
+        onFavoriteChanged: (_) => provider.toggleFavorite(item.id),
       ),
+      onUse: () => _useBuiltIn(item, provider),
     );
   }
 
-  void _onUserPromptTap(UserPrompt prompt, PromptsProvider provider) async {
-    // Update usage count
-    await provider.updateUserPromptUsage(prompt.id);
-
-    if (widget.onPromptSelected != null) {
-      widget.onPromptSelected!(prompt.prompt);
-    } else {
-      // Show prompt details or copy to clipboard
-      _showUserPromptDialog(prompt);
-    }
-  }
-
-  void _showUserPromptDialog(UserPrompt prompt) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1D162B),
-        title: Row(
-          children: [
-            Expanded(
-              child: Text(
-                prompt.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF8C7BA6)),
-              onSelected: (value) async {
-                if (value == 'edit') {
-                  Navigator.of(context).pop();
-                  _showAddPromptDialog(existingPrompt: prompt);
-                } else if (value == 'delete') {
-                  Navigator.of(context).pop();
-                  _deleteUserPrompt(prompt);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, color: Color(0xFF8C7BA6), size: 16),
-                      SizedBox(width: 8),
-                      Text('Edit', style: TextStyle(color: Color(0xFF8C7BA6))),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red, size: 16),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                prompt.prompt,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Text(
-                    'Used ${prompt.usageCount} times',
-                    style: const TextStyle(
-                      color: Color(0xFF8C7BA6),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Close',
-              style: TextStyle(color: Color(0xFF8C7BA6)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _onUserPromptTap(prompt, context.read<PromptsProvider>());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6A00),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Use Prompt'),
-          ),
-        ],
-      ),
+  PromptPreview _previewFor(PromptItem item, {double radius = 16}) {
+    return PromptPreview(
+      id: item.id,
+      tags: item.tags,
+      isImageToImage: item.promptType == PromptType.imageToImage,
+      imageUrl: PromptPreviewAssets.forPrompt(item.id) ?? item.imageUrl,
+      borderRadius: radius,
     );
   }
 
-  void _showAddPromptDialog({UserPrompt? existingPrompt}) {
-    showDialog(
-      context: context,
-      builder: (context) => AddPromptDialog(
-        existingPrompt: existingPrompt,
-        onPromptSaved: (savedPrompt) {
-          context.read<PromptsProvider>().refreshData();
-        },
-      ),
-    );
+  /// "witch · moon · fantasy": a hint of what a style is, never its prompt.
+  String _tagLine(List<String> tags) =>
+      tags.take(3).map((t) => t[0].toUpperCase() + t.substring(1)).join(' · ');
+
+  // ------------------------------------------------------------------ data
+
+  List<PromptItem> _builtIn(PromptsProvider provider) {
+    final all = <PromptItem>[
+      for (final c in provider.getAllCategories()) ...c.prompts,
+    ];
+    // Popular first, otherwise keep authoring order.
+    final sorted = [
+      ...all.where((p) => p.isPopular),
+      ...all.where((p) => !p.isPopular),
+    ];
+    return sorted;
   }
 
-  void _showPremiumRequiredDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1D162B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF6A00), Color(0xFFFF8A00)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.star, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Upgrade to Premium',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF6A00).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFFF6A00).withOpacity(0.3),
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Premium Benefits:',
-                    style: TextStyle(
-                      color: Color(0xFFFF6A00),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '• Access to all premium prompts',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  Text(
-                    '• Daily spin wheel for free tokens',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  Text(
-                    '• Higher token rewards',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  Text(
-                    '• Exclusive premium-only features',
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF8C7BA6),
-            ),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              // Navigate to purchase page and wait for return
-              await Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
-              // Premium status will be updated automatically via stream
-              // No need to manually reload
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6A00),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Upgrade Now'),
-          ),
-        ],
-      ),
-    );
+  bool _matches(String title, List<String> tags) {
+    if (_query.isEmpty) return true;
+    final q = _query.toLowerCase();
+    return title.toLowerCase().contains(q) ||
+        tags.any((t) => t.toLowerCase().contains(q));
   }
 
-  void _deleteUserPrompt(UserPrompt prompt) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1D162B),
-        title: const Text(
-          'Delete Prompt',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Are you sure you want to delete "${prompt.title}"? This action cannot be undone.',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Color(0xFF8C7BA6)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await context.read<PromptsProvider>().deleteUserPrompt(prompt.id);
-              if (mounted) {
-                NotificationService.success(
-                  context,
-                  message: NotificationService.promptDeleted,
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+  // ------------------------------------------------------------------- UI
 
   @override
   Widget build(BuildContext context) {
     return Consumer<PromptsProvider>(
-      builder: (context, provider, child) {
+      builder: (context, provider, _) {
+        final built = _builtIn(provider);
+        final text = built
+            .where((p) => p.promptType == PromptType.textToImage)
+            .toList();
+        final image = built
+            .where((p) => p.promptType == PromptType.imageToImage)
+            .toList();
+        final realistic = image
+            .where((p) => p.kind == StyleKind.realistic)
+            .toList();
+        final fantasy = image
+            .where((p) => p.kind == StyleKind.fantasy)
+            .toList();
+        final byId = {for (final p in built) p.id: p};
+        // Most recently favorited first.
+        final favs = [
+          for (final id in provider.favoriteIds.reversed)
+            if (byId[id] != null) byId[id]!,
+        ];
+
+        List<PromptItem> shown = switch (_filter) {
+          _Filter.text => text,
+          _Filter.realistic => realistic,
+          _Filter.fantasy => fantasy,
+          _Filter.favorites => favs,
+        };
+        shown = shown.where((p) => _matches(p.title, p.tags)).toList();
+        final bottom = MediaQuery.of(context).padding.bottom;
+
         return Scaffold(
-          backgroundColor: const Color(0xFF0F0B1A),
-          appBar: AppBar(
-            title: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+          backgroundColor: SeasonPalette.scaffold,
+          body: NotificationListener<UserScrollNotification>(
+            onNotification: _onUserScroll,
+            child: NestedScrollView(
+              // Header slides away on scroll down and returns on any
+              // scroll up (floating + snap), like a social feed.
+              floatHeaderSlivers: true,
+              headerSliverBuilder: (context, _) => [
+                SliverAppBar(
+                  floating: true,
+                  snap: true,
+                  pinned: false,
+                  backgroundColor: SeasonPalette.scaffold,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  toolbarHeight: AppMetrics.toolbarHeight,
+                  title: const AppBarTitle(
+                    icon: Icons.lightbulb_rounded,
+                    title: 'Prompts',
+                  ),
+                  actions: [
+                    TokenDisplayWidget(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const PurchasePage()),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.lightbulb_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Prompt Library',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                    const SizedBox(width: 12),
+                  ],
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(60),
+                    child: _SearchAndFilters(
+                      controller: _search,
+                      selected: _filter,
+                      counts: {
+                        _Filter.text: text.length,
+                        _Filter.realistic: realistic.length,
+                        _Filter.fantasy: fantasy.length,
+                        _Filter.favorites: favs.length,
+                      },
+                      onFilterChanged: (f) {
+                        setState(() => _filter = f);
+                        _setNavHidden(false);
+                      },
+                      onQueryChanged: (v) => setState(() => _query = v.trim()),
+                    ),
                   ),
                 ),
               ],
-            ),
-            backgroundColor: const Color(0xFF0F0B1A),
-            elevation: 0,
-            toolbarHeight: AppMetrics.toolbarHeight,
-            actions: [
-              IconButton(
-                onPressed: () => _showAddPromptDialog(),
-                icon: const Icon(Icons.add, color: Colors.white),
-                tooltip: 'Add Custom Prompt',
-              ),
-              TokenDisplayWidget(
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PurchasePage()),
-                  );
-                  // Premium status will be updated automatically via stream
-                },
-              ),
-            ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(120),
-              child: Column(
-                children: [
-                  // Search Bar
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1D162B),
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _onSearch,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        hintText: 'Search prompts...',
-                        hintStyle: TextStyle(
-                          color: Color(0xFF8C7BA6),
-                          fontSize: 16,
-                        ),
-                        border: InputBorder.none,
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Color(0xFF8C7BA6),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Tab Bar
-                  Container(
-                    height: 50,
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      indicatorColor: const Color(0xFFFF6A00),
-                      indicatorWeight: 3,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: const Color(0xFF8C7BA6),
-                      labelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      tabs: [
-                        const Tab(text: 'Text to Image'),
-                        const Tab(text: 'Image to Image'),
-                        const Tab(text: 'Popular'),
-                        const Tab(text: 'My Prompts'),
-                      ],
-                    ),
-                  ),
-                ],
+              body: KeyedSubtree(
+                key: ValueKey(_filter),
+                child: _buildBuiltIn(shown, provider, bottom),
               ),
             ),
           ),
-          body: provider.isSearching
-              ? _buildSearchResults(provider)
-              : _buildTabContent(provider),
         );
       },
     );
   }
 
-  Widget _buildSearchResults(PromptsProvider provider) {
-    final totalResults = provider.totalSearchResults;
-
-    if (totalResults == 0) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 64, color: Color(0xFF8C7BA6)),
-            SizedBox(height: 16),
-            Text(
-              'No prompts found',
-              style: TextStyle(
-                color: Color(0xFF8C7BA6),
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Try different keywords',
-              style: TextStyle(color: Color(0xFF8C7BA6), fontSize: 14),
-            ),
-          ],
-        ),
-      );
+  // Hide the bottom bar while scrolling down, show it when scrolling up or
+  // when back at the top.
+  bool _onUserScroll(UserScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    if (n.metrics.pixels <= n.metrics.minScrollExtent + 1) {
+      _setNavHidden(false);
+    } else if (n.direction == ScrollDirection.reverse) {
+      _setNavHidden(true);
+    } else if (n.direction == ScrollDirection.forward) {
+      _setNavHidden(false);
     }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: totalResults,
-      itemBuilder: (context, index) {
-        if (index < provider.searchResults.length) {
-          final prompt = provider.searchResults[index];
-          return _buildPromptCard(prompt, provider);
-        } else {
-          final userPrompt = provider
-              .userPromptSearchResults[index - provider.searchResults.length];
-          return _buildUserPromptCard(userPrompt, provider);
-        }
-      },
-    );
+    return false;
   }
 
-  Widget _buildTabContent(PromptsProvider provider) {
-    return TabBarView(
-      controller: _tabController,
-      children: [
-        _buildTextToImagePrompts(provider),
-        _buildImageToImagePrompts(provider),
-        _buildPopularPrompts(provider),
-        _buildMyPrompts(provider),
-      ],
-    );
+  void _setNavHidden(bool hidden) {
+    if (!mounted) return;
+    context.read<MainNavigationProvider>().setNavHidden(hidden);
   }
 
-  Widget _buildTextToImagePrompts(PromptsProvider provider) {
-    final textToImagePrompts = _selectedSubcategory != null
-        ? PromptService.getTextToImagePromptsBySubcategory(
-            _selectedSubcategory!,
-          )
-        : PromptService.getTextToImagePrompts();
-
-    return Column(
-      children: [
-        // Subcategory filter chips
-        Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildSubcategoryChip('All', null),
-              ...PromptService.getTextToImageSubcategories().map(
-                (subcategory) => _buildSubcategoryChip(
-                  subcategory.substring(0, 1).toUpperCase() +
-                      subcategory.substring(1),
-                  subcategory,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Prompts list
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: textToImagePrompts.length,
-            itemBuilder: (context, index) {
-              final prompt = textToImagePrompts[index];
-              return _buildPromptCard(prompt, provider);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImageToImagePrompts(PromptsProvider provider) {
-    final imageToImagePrompts = _selectedSubcategory != null
-        ? PromptService.getImageToImagePromptsBySubcategory(
-            _selectedSubcategory!,
-          )
-        : PromptService.getImageToImagePrompts();
-
-    return Column(
-      children: [
-        // Subcategory filter chips
-        Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildSubcategoryChip('All', null),
-              ...PromptService.getImageToImageSubcategories().map(
-                (subcategory) => _buildSubcategoryChip(
-                  subcategory.substring(0, 1).toUpperCase() +
-                      subcategory.substring(1),
-                  subcategory,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Prompts list
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: imageToImagePrompts.length,
-            itemBuilder: (context, index) {
-              final prompt = imageToImagePrompts[index];
-              return _buildPromptCard(prompt, provider);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPopularPrompts(PromptsProvider provider) {
-    final popularPrompts = provider.getPopularPrompts();
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: popularPrompts.length,
-      itemBuilder: (context, index) {
-        final prompt = popularPrompts[index];
-        return _buildPromptCard(prompt, provider);
-      },
-    );
-  }
-
-  Widget _buildMyPrompts(PromptsProvider provider) {
-    if (provider.userPrompts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1D162B),
-                borderRadius: BorderRadius.circular(40),
-                border: Border.all(
-                  color: const Color(0xFF8C7BA6).withOpacity(0.3),
-                ),
-              ),
-              child: const Icon(
-                Icons.lightbulb_outline,
-                size: 40,
-                color: Color(0xFF8C7BA6),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'No Custom Prompts Yet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Create your first custom prompt\nand it will appear here',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF8C7BA6),
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () => _showAddPromptDialog(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF6A00),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              icon: const Icon(Icons.add, size: 20),
-              label: const Text(
-                'Add First Prompt',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget _buildBuiltIn(
+    List<PromptItem> items,
+    PromptsProvider provider,
+    double bottom,
+  ) {
+    if (items.isEmpty) {
+      return _filter == _Filter.favorites && _query.isEmpty
+          ? const _EmptyState(
+              emoji: '💜',
+              title: 'No favorites yet',
+              body: 'Tap the heart on any prompt to save it here.',
+            )
+          : const _EmptyState(
+              emoji: '🔍',
+              title: 'No prompts found',
+              body: 'Try a different word or switch the filter.',
+            );
     }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: provider.userPrompts.length,
-      itemBuilder: (context, index) {
-        final prompt = provider.userPrompts[index];
-        return _buildUserPromptCard(prompt, provider);
-      },
-    );
-  }
-
-  Widget _buildPromptCard(PromptItem prompt, PromptsProvider provider) {
-    final isPremiumPrompt = provider.isPromptPremium(prompt);
-    final isLocked = provider.isPromptLocked(prompt);
-
-    // Debug print for premium status
-    print(
-      'PromptsPage: Building prompt card - Title: ${prompt.title}, isPremiumPrompt: $isPremiumPrompt, isPremium: ${provider.isPremium}, isLocked: $isLocked',
-    );
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Stack(
+    return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + bottom),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          InkWell(
-            onTap: () => _onPromptTap(prompt, provider),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: prompt.promptType == PromptType.imageToImage
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFFFF6A00),
-                                    Color(0xFF9C27B0),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : const LinearGradient(
-                                  colors: [
-                                    Color(0xFF9C27B0),
-                                    Color(0xFF2196F3),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          prompt.promptType == PromptType.imageToImage
-                              ? Icons.face_retouching_natural
-                              : Icons.auto_fix_high,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              prompt.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                // Prompt type indicator
-                                Container(
-                                  margin: const EdgeInsets.only(right: 6),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        prompt.promptType ==
-                                            PromptType.imageToImage
-                                        ? const Color(
-                                            0xFFFF6A00,
-                                          ).withOpacity(0.2)
-                                        : const Color(
-                                            0xFF2196F3,
-                                          ).withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    prompt.promptType == PromptType.imageToImage
-                                        ? 'Image to Image'
-                                        : 'Text to Image',
-                                    style: TextStyle(
-                                      color:
-                                          prompt.promptType ==
-                                              PromptType.imageToImage
-                                          ? const Color(0xFFFF6A00)
-                                          : const Color(0xFF2196F3),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                if (prompt.isPopular)
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 6),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(
-                                        0xFFFF6A00,
-                                      ).withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Text(
-                                      'Popular',
-                                      style: TextStyle(
-                                        color: Color(0xFFFF6A00),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                if (provider.isPromptPremium(prompt))
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFFFF6A00),
-                                          Color(0xFFFF8A00),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.star,
-                                          color: Colors.white,
-                                          size: 10,
-                                        ),
-                                        SizedBox(width: 2),
-                                        Text(
-                                          'Premium',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Color(0xFF8C7BA6),
-                        size: 16,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    prompt.prompt,
-                    style: TextStyle(
-                      color: isLocked
-                          ? const Color(0xFF8C7BA6).withOpacity(0.3)
-                          : const Color(0xFF8C7BA6),
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+          if (!provider.isPremium)
+            _UnlockBanner(
+              lockedCount: PromptsProvider.lockedCountAllSeasons,
+              freePerMode: PromptsProvider.freePromptsPerMode,
+              onTap: _showPremiumRequiredDialog,
             ),
+          MasonryGrid(
+            tiles: [
+              for (final item in items)
+                MasonryTile(
+                  key: item.id,
+                  child: (h) => _PromptTile(
+                    height: h,
+                    title: item.title,
+                    subtitle: item.tagline.isNotEmpty
+                        ? item.tagline
+                        : _tagLine(item.tags),
+                    isLocked: provider.isPromptLocked(item),
+                    isFavorite: provider.isFavorite(item.id),
+                    onFavorite: () => provider.toggleFavorite(item.id),
+                    preview: _previewFor(item, radius: 0),
+                    onTap: () => _openBuiltIn(item, provider),
+                  ),
+                ),
+            ],
           ),
-
-          // Lock overlay for premium prompts (partial overlay)
-          if (isLocked)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F0B1A).withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFFF6A00).withOpacity(0.3),
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Semi-transparent overlay for the content area
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0F0B1A).withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                    // Lock icon and message at the center (clickable)
-                    Center(
-                      child: GestureDetector(
-                        onTap: _showPremiumRequiredDialog,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1D162B).withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFFFF6A00).withOpacity(0.5),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFFF6A00),
-                                      Color(0xFFFF8A00),
-                                    ],
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.lock,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Premium Content',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildUserPromptCard(UserPrompt prompt, PromptsProvider provider) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+  // ------------------------------------------------------------- dialogs
+
+  /// Locked styles go straight to the plans: one tap, no extra dialog.
+  void _showPremiumRequiredDialog() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
+  }
+}
+
+// =============================================================== widgets
+
+/// One compact row: a circular search button on the far left, followed by the
+/// filter tags. Tapping the circle expands it horizontally into a search field
+/// (tags fade/slide away); the close button collapses it again.
+///
+/// Performance: the layout is computed once. The expansion is purely a
+/// paint/transform animation (animated pill painter, fade and slide
+/// transitions), so no widget is re-laid-out or rebuilt per frame.
+class _SearchAndFilters extends StatefulWidget {
+  const _SearchAndFilters({
+    required this.controller,
+    required this.selected,
+    required this.counts,
+    required this.onFilterChanged,
+    required this.onQueryChanged,
+  });
+
+  final TextEditingController controller;
+  final _Filter selected;
+  final Map<_Filter, int> counts;
+  final ValueChanged<_Filter> onFilterChanged;
+  final ValueChanged<String> onQueryChanged;
+
+  @override
+  State<_SearchAndFilters> createState() => _SearchAndFiltersState();
+}
+
+class _SearchAndFiltersState extends State<_SearchAndFilters>
+    with SingleTickerProviderStateMixin {
+  static const double _h = 44;
+  static const _labels = {
+    _Filter.text: 'Text to Image',
+    _Filter.realistic: 'Realistic Photo',
+    _Filter.fantasy: 'Fantasy Photo',
+    _Filter.favorites: 'Favorites',
+  };
+
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+  );
+  late final Animation<double> _t = CurvedAnimation(
+    parent: _ctrl,
+    curve: Curves.easeOutCubic,
+    reverseCurve: Curves.easeInCubic,
+  );
+  late final Animation<double> _chipsOpacity = Tween<double>(
+    begin: 1,
+    end: 0,
+  ).animate(CurvedAnimation(parent: _ctrl, curve: const Interval(0, 0.5)));
+  late final Animation<Offset> _chipsSlide = Tween<Offset>(
+    begin: Offset.zero,
+    end: const Offset(0.08, 0),
+  ).animate(_t);
+  late final Animation<double> _fieldOpacity = CurvedAnimation(
+    parent: _ctrl,
+    curve: const Interval(0.45, 1, curve: Curves.easeOut),
+  );
+
+  final FocusNode _focus = FocusNode();
+  final ScrollController _scroll = ScrollController();
+
+  bool get _open =>
+      _ctrl.status == AnimationStatus.forward ||
+      _ctrl.status == AnimationStatus.completed;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _scroll.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openSearch() async {
+    if (_open) return;
+    HapticFeedback.selectionClick();
+    // The circle scrolls with the tags; bring it home before expanding.
+    if (_scroll.hasClients && _scroll.offset > 1) {
+      await _scroll.animateTo(
+        0,
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
+      );
+    }
+    if (!mounted) return;
+    _ctrl.forward();
+    _focus.requestFocus();
+    setState(() {}); // refresh hit-testing flags only
+  }
+
+  void _closeSearch() {
+    _focus.unfocus();
+    widget.controller.clear();
+    widget.onQueryChanged('');
+    _ctrl.reverse();
+    setState(() {});
+  }
+
+  /// The collapsed search button: first item of the horizontal list, so it
+  /// scrolls away together with the filter tags.
+  Widget _searchCircle() {
+    return Semantics(
+      button: true,
+      label: 'Search prompts',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _openSearch,
+        child: Container(
+          width: _h,
+          height: _h,
+          decoration: BoxDecoration(
+            color: SeasonPalette.text.withOpacity(0.06),
+            shape: BoxShape.circle,
+            border: Border.all(color: SeasonPalette.text.withOpacity(0.12)),
+          ),
+          child: Icon(
+            Icons.search_rounded,
+            size: 22,
+            color: SeasonPalette.text.withOpacity(0.85),
+          ),
+        ),
       ),
-      child: InkWell(
-        onTap: () => _onUserPromptTap(prompt, provider),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    );
+  }
+
+  Widget _chips() {
+    return ListView.separated(
+      controller: _scroll,
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: _Filter.values.length + 1,
+      separatorBuilder: (_, __) => const SizedBox(width: 8),
+      itemBuilder: (_, index) {
+        if (index == 0) return _searchCircle();
+        final i = index - 1;
+        final f = _Filter.values[i];
+        final on = f == widget.selected;
+        return Semantics(
+          button: true,
+          selected: on,
+          child: GestureDetector(
+            onTap: () {
+              if (!on) HapticFeedback.selectionClick();
+              widget.onFilterChanged(f);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: on
+                    ? SeasonPalette.accent
+                    : SeasonPalette.text.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: on
+                      ? SeasonPalette.accent
+                      : SeasonPalette.text.withOpacity(0.1),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF9C27B0), Color(0xFFFF6A00)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 20,
+                  Text(
+                    _labels[f]!,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: on ? SeasonPalette.onAccent : SeasonPalette.text,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(width: 6),
+                  Text(
+                    '${widget.counts[f] ?? 0}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: on
+                          ? SeasonPalette.onAccent
+                          : SeasonPalette.mutedText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final open = _open;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+      child: SizedBox(
+        height: _h,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final maxW = box.maxWidth - 32;
+            return RepaintBoundary(
+              child: Stack(
+                children: [
+                  // Filter tags (laid out once, faded/slid by transforms).
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: open,
+                      child: FadeTransition(
+                        opacity: _chipsOpacity,
+                        child: SlideTransition(
+                          position: _chipsSlide,
+                          child: _chips(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    left: 16,
+                    right: 16,
+                    child: Stack(
                       children: [
-                        Text(
-                          prompt.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        // Animated pill background (paint only).
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: CustomPaint(
+                              painter: _PillPainter(
+                                t: _t,
+                                maxWidth: maxW,
+                                height: _h,
+                                accent: SeasonPalette.accent,
+                                base: SeasonPalette.scaffold,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Used ${prompt.usageCount} times',
-                          style: const TextStyle(
-                            color: Color(0xFF8C7BA6),
-                            fontSize: 10,
+                        // Search field: laid out at full width once, revealed by fade.
+                        Positioned(
+                          left: _h,
+                          right: _h,
+                          top: 0,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            ignoring: !open,
+                            child: FadeTransition(
+                              opacity: _fieldOpacity,
+                              child: Center(
+                                child: TextField(
+                                  controller: widget.controller,
+                                  focusNode: _focus,
+                                  onChanged: widget.onQueryChanged,
+                                  textInputAction: TextInputAction.search,
+                                  cursorColor: SeasonPalette.accent,
+                                  textAlignVertical: TextAlignVertical.center,
+                                  style: const TextStyle(fontSize: 15),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search prompts',
+                                    filled: false,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Close button, pinned to the right edge of the open pill.
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          width: _h,
+                          height: _h,
+                          child: IgnorePointer(
+                            ignoring: !open,
+                            child: FadeTransition(
+                              opacity: _fieldOpacity,
+                              child: Semantics(
+                                button: true,
+                                label: 'Close search',
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: _closeSearch,
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    size: 20,
+                                    color: SeasonPalette.text.withOpacity(0.7),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Search icon of the expanded pill (the collapsed one is part
+                        // of the scrolling list).
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          width: _h,
+                          height: _h,
+                          child: IgnorePointer(
+                            child: FadeTransition(
+                              opacity: _t,
+                              child: Icon(
+                                Icons.search_rounded,
+                                size: 22,
+                                color: SeasonPalette.accent,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    icon: const Icon(
-                      Icons.more_vert,
-                      color: Color(0xFF8C7BA6),
-                      size: 20,
-                    ),
-                    onSelected: (value) async {
-                      if (value == 'edit') {
-                        _showAddPromptDialog(existingPrompt: prompt);
-                      } else if (value == 'delete') {
-                        _deleteUserPrompt(prompt);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.edit,
-                              color: Color(0xFF8C7BA6),
-                              size: 16,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Edit',
-                              style: TextStyle(color: Color(0xFF8C7BA6)),
-                            ),
-                          ],
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// Draws the circle→pill background. Repaints from the animation only.
+class _PillPainter extends CustomPainter {
+  _PillPainter({
+    required this.t,
+    required this.maxWidth,
+    required this.height,
+    required this.accent,
+    required this.base,
+  }) : super(repaint: t);
+
+  final Animation<double> t;
+  final double maxWidth;
+  final double height;
+  final Color accent;
+  final Color base;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final v = t.value;
+    if (v <= 0.001) return; // collapsed: the list's own circle is shown
+
+    // Opaque colors so the list item underneath is fully covered.
+    final fillClosed = Color.alphaBlend(
+      SeasonPalette.text.withOpacity(0.06),
+      base,
+    );
+    final fillOpen = Color.alphaBlend(
+      SeasonPalette.text.withOpacity(0.08),
+      base,
+    );
+    final w = height + (maxWidth - height) * v;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, w, height),
+      Radius.circular(height / 2),
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()..color = Color.lerp(fillClosed, fillOpen, v)!,
+    );
+    canvas.drawRRect(
+      rect.deflate(0.5),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = Color.lerp(
+          Color.alphaBlend(SeasonPalette.text.withOpacity(0.12), base),
+          accent.withOpacity(0.7),
+          v,
+        )!,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PillPainter old) =>
+      old.maxWidth != maxWidth ||
+      old.height != height ||
+      old.accent != accent ||
+      old.base != base ||
+      old.t != t;
+}
+
+/// Image-first tile: full-bleed sample, title and one-line prompt on a solid
+/// dark footer. No borders, no buttons; the whole tile is the tap target.
+class _PromptTile extends StatelessWidget {
+  const _PromptTile({
+    required this.height,
+    required this.title,
+    required this.subtitle,
+    required this.isLocked,
+    required this.preview,
+    required this.onTap,
+    required this.isFavorite,
+    required this.onFavorite,
+  });
+
+  final double height;
+  final String title;
+  final String subtitle;
+  final bool isLocked;
+  final Widget preview;
+  final VoidCallback onTap;
+  final bool isFavorite;
+  final VoidCallback onFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: title,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              preview,
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  color: Colors.black.withOpacity(0.62),
+                  padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                          color: Colors.white,
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red, size: 16),
-                            SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: Colors.red)),
-                          ],
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: Colors.white.withOpacity(0.65),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                prompt.prompt,
-                style: const TextStyle(
-                  color: Color(0xFF8C7BA6),
-                  fontSize: 14,
-                  height: 1.4,
                 ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+              ),
+              if (isLocked)
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFD54F), Color(0xFFFF9800)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.workspace_premium_rounded,
+                          size: 13,
+                          color: Color(0xFF3B2300),
+                        ),
+                        SizedBox(width: 3),
+                        Text(
+                          'PRO',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                            color: Color(0xFF3B2300),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Semantics(
+                  button: true,
+                  label: isFavorite
+                      ? 'Remove from favorites'
+                      : 'Add to favorites',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      onFavorite();
+                    },
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 160),
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            transitionBuilder: (c, a) =>
+                                ScaleTransition(scale: a, child: c),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              key: ValueKey(isFavorite),
+                              size: 18,
+                              color: isFavorite
+                                  ? SeasonPalette.accent
+                                  : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Slim, quiet upsell above the list for free users: one line of value, one
+/// tap to the plans. No animation, scrolls away with the list.
+class _UnlockBanner extends StatelessWidget {
+  const _UnlockBanner({
+    required this.lockedCount,
+    required this.freePerMode,
+    required this.onTap,
+  });
+
+  final int lockedCount;
+  final int freePerMode;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SeasonPalette.accent;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Semantics(
+        button: true,
+        label:
+            'Go Pro: unlock $lockedCount more styles and get 50 tokens every month',
+        child: GestureDetector(
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            height: 56,
+            padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.workspace_premium_rounded, color: accent, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unlock $lockedCount more styles',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      Text(
+                        '+50 tokens every month with Premium',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: SeasonPalette.text.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Go Pro',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.emoji,
+    required this.title,
+    required this.body,
+  });
+  final String emoji;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(emoji, style: const TextStyle(fontSize: 48)),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.4,
+                color: SeasonPalette.text.withOpacity(0.55),
+              ),
+            ),
+          ],
         ),
       ),
     );

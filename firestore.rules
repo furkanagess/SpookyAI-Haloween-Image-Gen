@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // One document per prompt with running totals. The app may only bump
+    // the totals by exactly one rating at a time. The totals (no personal
+    // data) can be read so the app can update the average in a transaction.
+    match /prompts/{promptKey} {
+      function d() { return request.resource.data; }
+      function prev(k) { return resource == null ? 0 : resource.data.get(k, 0); }
+      function delta(k) { return d().get(k, 0) - prev(k); }
+      function starDeltas() {
+        return delta('stars1') + delta('stars2') + delta('stars3')
+          + delta('stars4') + delta('stars5');
+      }
+      function validTotals() {
+        return d().keys().hasOnly(['prompt', 'styleId', 'styleTitle',
+              'ratingCount', 'starsTotal', 'stars1', 'stars2', 'stars3',
+              'stars4', 'stars5', 'averageRating', 'lastRatedAt'])
+          && d().prompt is string && d().prompt.size() <= 4000
+          && delta('ratingCount') == 1
+          && delta('starsTotal') >= 1 && delta('starsTotal') <= 5
+          && starDeltas() == 1
+          && d().averageRating is number
+          && d().averageRating == d().starsTotal / d().ratingCount
+          && d().lastRatedAt == request.time;
+      }
+      allow create, update: if validTotals();
+      allow get: if true;
+      allow list, delete: if false;
+
+      // Every single rating for this prompt.
+      match /ratings/{id} {
+        allow create: if request.resource.data.keys().hasOnly(
+              ['stars', 'prompt', 'mode', 'styleId', 'styleTitle',
+               'apologyToken', 'deviceId', 'platform', 'appVersion', 'createdAt'])
+          && request.resource.data.stars is int
+          && request.resource.data.stars >= 1
+          && request.resource.data.stars <= 5
+          && request.resource.data.prompt is string
+          && request.resource.data.prompt.size() <= 4000
+          && request.resource.data.mode is string
+          && request.resource.data.apologyToken is bool
+          && request.resource.data.createdAt == request.time;
+        allow read, update, delete: if false;
+      }
+    }
+    // Redeem codes, created by hand in the Firebase console (doc id = code
+    // in upper case). The app may read one code by id (never list them) and
+    // use it once per device: remainingUses goes down by exactly one, in the
+    // same write that creates redemptions/{deviceId}.
+    match /promo_codes/{code} {
+      function codePath() {
+        return /databases/$(database)/documents/promo_codes/$(code);
+      }
+      function usePath(device) {
+        return /databases/$(database)/documents/promo_codes/$(code)/redemptions/$(device);
+      }
+      allow get: if true;
+      allow list, create, delete: if false;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['remainingUses', 'lastRedeemedBy'])
+          && resource.data.get('active', true) == true
+          && resource.data.get('tokens', 0) > 0
+          && (!('expiresAt' in resource.data) || request.time < resource.data.expiresAt)
+          && request.resource.data.remainingUses == resource.data.remainingUses - 1
+          && request.resource.data.remainingUses >= 0
+          && request.resource.data.lastRedeemedBy is string
+          && !exists(usePath(request.resource.data.lastRedeemedBy))
+          && existsAfter(usePath(request.resource.data.lastRedeemedBy));
+
+      match /redemptions/{device} {
+        allow get: if true;
+        allow create: if request.resource.data.keys().hasOnly(['redeemedAt', 'platform'])
+          && request.resource.data.redeemedAt == request.time
+          && request.resource.data.platform is string
+          && request.resource.data.platform.size() <= 20
+          && getAfter(codePath()).data.lastRedeemedBy == device
+          && getAfter(codePath()).data.remainingUses == get(codePath()).data.remainingUses - 1;
+        allow list, update, delete: if false;
+      }
+    }
+
+    // Trend sections for the Trends tab, edited by hand in the Firebase
+    // console (see lib/core/services/trend_service.dart). Read-only for the app.
+    match /trend_sections/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Texts, colors and switches of the Trends screen (doc "screen").
+    match /trend_config/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

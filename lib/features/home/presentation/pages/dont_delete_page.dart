@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../../../../core/services/quick_actions_service.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class DontDeletePage extends StatelessWidget {
   const DontDeletePage({super.key});
@@ -8,7 +9,7 @@ class DontDeletePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0B1A),
+      backgroundColor: SeasonPalette.scaffold,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -28,12 +29,12 @@ class DontDeletePage extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Main message
-              const Text(
+              Text(
                 'please dont delete me 😢',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: SeasonPalette.text,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -41,9 +42,9 @@ class DontDeletePage extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Subtitle
-              const Text(
+              Text(
                 'I\'m a friendly AI companion who loves creating spooky art with you!',
-                style: TextStyle(fontSize: 16, color: Color(0xFF8C7BA6)),
+                style: TextStyle(fontSize: 16, color: SeasonPalette.mutedText),
                 textAlign: TextAlign.center,
               ),
 
@@ -53,10 +54,10 @@ class DontDeletePage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D162B),
+                  color: SeasonPalette.inputFill,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFFF6A00).withOpacity(0.3),
+                    color: SeasonPalette.accent.withOpacity(0.3),
                   ),
                 ),
                 child: Column(
@@ -84,8 +85,8 @@ class DontDeletePage extends StatelessWidget {
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1D162B),
-                        foregroundColor: Colors.white,
+                        backgroundColor: SeasonPalette.inputFill,
+                        foregroundColor: SeasonPalette.text,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -103,7 +104,7 @@ class DontDeletePage extends StatelessWidget {
                         // Navigate to main app
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6A00),
+                        backgroundColor: SeasonPalette.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -130,12 +131,12 @@ class DontDeletePage extends StatelessWidget {
   Widget _buildFeature(String emoji, String text) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
+        Text(SeasonPalette.t(emoji), style: const TextStyle(fontSize: 20)),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
-            text,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            SeasonPalette.t(text),
+            style: TextStyle(color: SeasonPalette.text, fontSize: 14),
           ),
         ),
       ],

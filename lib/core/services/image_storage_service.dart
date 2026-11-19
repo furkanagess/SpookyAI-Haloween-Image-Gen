@@ -1,10 +1,11 @@
+import 'dart:async';
+import 'analytics_service.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gal/gal.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class SavedImage {
   final String id;
@@ -50,34 +51,48 @@ class ImageStorageService {
   static const String _imagesKey = 'saved_images';
   static const String _imagesDirectory = 'spooky_ai_images';
 
-  /// Save an image to local storage and gallery
+  /// The folder that holds the pictures. Resolved on every call: on iOS the
+  /// app container's path changes when the app is updated, so an absolute
+  /// path stored earlier would stop working.
+  static Future<Directory> _imagesDir() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return Directory('${directory.path}/$_imagesDirectory');
+  }
+
+  /// Copies a picture to the phone's photo library (asks for permission).
+  /// Never throws; returns whether it worked.
+  static Future<bool> exportToGallery(Uint8List bytes, {String? name}) async {
+    try {
+      // gal asks only for what it needs: add-only on iOS, legacy storage on
+      // Android 9 and below, nothing on newer Android.
+      try {
+        if (!await Gal.hasAccess()) {
+          await Gal.requestAccess();
+        }
+      } catch (_) {}
+      await Gal.putImageBytes(
+        bytes,
+        name: name ?? 'spooky_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      unawaited(AnalyticsService.imageSaved());
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Saves a picture inside the app (always) and, when [exportToGallery] is
+  /// true, also to the phone's photo library. Pictures are written to the
+  /// documents folder, which survives closing the app and updates.
   static Future<String> saveImage({
     required Uint8List imageBytes,
     required String prompt,
     bool isImageToImage = false,
     String? originalImagePath,
+    bool exportToGallery = true,
   }) async {
     try {
-      // Best-effort permissions:
-      // - We always save to app documents (no permission required)
-      // - Gallery export is attempted opportunistically; if permission is
-      //   denied or platform restriction occurs, we continue without failing
-      //   the overall save.
-      try {
-        if (Platform.isIOS) {
-          await Permission.photosAddOnly.request();
-        } else if (Platform.isAndroid) {
-          // On Android 13+ READ_MEDIA_IMAGES is managed by the gallery plugin.
-          // For older versions, request legacy storage if available.
-          await Permission.storage.request();
-        }
-      } catch (_) {
-        // Ignore permission request errors; we will still save locally below.
-      }
-
-      // Get application documents directory
-      final directory = await getApplicationDocumentsDirectory();
-      final imagesDir = Directory('${directory.path}/$_imagesDirectory');
+      final imagesDir = await _imagesDir();
 
       // Create directory if it doesn't exist
       if (!await imagesDir.exists()) {
@@ -93,11 +108,9 @@ class ImageStorageService {
       final file = File(filePath);
       await file.writeAsBytes(imageBytes);
 
-      // Try to save to gallery (non-fatal on failure)
-      try {
-        await Gal.putImageBytes(imageBytes, name: filename);
-      } catch (_) {
-        // Ignore gallery failures; image is still saved locally.
+      // Optional export to the photo library (non-fatal on failure).
+      if (exportToGallery) {
+        await ImageStorageService.exportToGallery(imageBytes, name: filename);
       }
 
       // Create saved image record
@@ -124,11 +137,34 @@ class ImageStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final imagesJson = prefs.getStringList(_imagesKey) ?? [];
+      final dir = await _imagesDir();
 
-      return imagesJson.map((json) {
-        final data = jsonDecode(json);
-        return SavedImage.fromJson(data);
-      }).toList();
+      // Re-point every record at the current folder (by file name) and drop
+      // records whose file is really gone, so the gallery never shows holes.
+      final kept = <SavedImage>[];
+      var changed = false;
+      for (final json in imagesJson) {
+        final img = SavedImage.fromJson(jsonDecode(json));
+        final name = img.filePath.split('/').last;
+        final path = '${dir.path}/$name';
+        if (!await File(path).exists()) {
+          changed = true;
+          continue;
+        }
+        if (path != img.filePath) changed = true;
+        kept.add(
+          SavedImage(
+            id: img.id,
+            prompt: img.prompt,
+            createdAt: img.createdAt,
+            filePath: path,
+            isImageToImage: img.isImageToImage,
+            originalImagePath: img.originalImagePath,
+          ),
+        );
+      }
+      if (changed) await _saveImagesMetadata(kept);
+      return kept;
     } catch (e) {
       return [];
     }

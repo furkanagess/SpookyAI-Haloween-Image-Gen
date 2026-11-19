@@ -1,4 +1,10 @@
+import '../../../../core/services/analytics_service.dart';
 import 'dart:async';
+import '../widgets/style_picker_card.dart';
+import '../../../../core/services/prompts_provider.dart';
+import 'dart:math';
+import '../../../../core/services/prompt_input_provider.dart';
+import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -13,11 +19,20 @@ import '../../../../core/widgets/token_display_widget.dart';
 
 import '../../../../core/services/fal_ai_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/widgets/app_bar_title.dart';
 import '../../../../core/theme/app_metrics.dart';
-import '../../../../core/utils/prompt_builder.dart';
+import '../../../../core/prompt_engine/blocked_prompt_dialog.dart';
+import '../../../../core/prompt_engine/prompt_engine.dart';
 import 'purchase_page.dart';
+import 'season_map_page.dart';
+import '../widgets/world_map_button.dart';
+import '../widgets/generate_confirm_sheet.dart';
+import 'generated_result_page.dart';
+import '../../data/models/prompt_category.dart';
 import 'photos_page.dart';
 import 'prompts_page.dart';
+import 'trend_page.dart';
+import '../../../../core/services/trend_service.dart';
 import 'profile_page.dart';
 import '../../domain/generation_mode.dart';
 import '../../domain/generated_image_result.dart';
@@ -25,12 +40,27 @@ import '../widgets/prompt_input_widget.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/generation_progress_dialog.dart';
 import '../widgets/paywall_dialog.dart';
-import '../widgets/no_tokens_dialog.dart';
+import '../../../tour/product_tour.dart';
 import '../widgets/low_balance_dialog.dart';
 import '../../../../core/models/paywall_service.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
+import '../widgets/generation_mode_switcher.dart';
+import '../widgets/generate_action_bar.dart';
+import '../widgets/prompt_suggestions.dart';
+import '../widgets/app_bottom_nav.dart';
+import '../../../../core/services/token_costs.dart';
+import '../widgets/idea_chips.dart';
+import '../widgets/image_to_video_flow.dart';
+import '../widgets/video_showcase_card.dart';
 
 class MainNavigationPageRefactored extends StatefulWidget {
-  const MainNavigationPageRefactored({super.key});
+  const MainNavigationPageRefactored({
+    super.key,
+    this.showPaywallOnEnter = false,
+  });
+
+  /// True when arriving straight from onboarding: show the paywall on entry.
+  final bool showPaywallOnEnter;
 
   @override
   State<MainNavigationPageRefactored> createState() =>
@@ -40,6 +70,14 @@ class MainNavigationPageRefactored extends StatefulWidget {
 class _MainNavigationPageRefactoredState
     extends State<MainNavigationPageRefactored>
     with TickerProviderStateMixin {
+  final ValueNotifier<GenerationMode?> _promptsFilterRequest =
+      ValueNotifier<GenerationMode?>(null);
+
+  void _openStyles(MainNavigationProvider provider) {
+    _promptsFilterRequest.value = provider.activeMode;
+    provider.setCurrentIndex(1);
+  }
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   late AnimationController _premiumBannerController;
@@ -51,6 +89,7 @@ class _MainNavigationPageRefactoredState
 
   // Page keys for better performance
   final List<GlobalKey<State<StatefulWidget>>> _pageKeys = [
+    GlobalKey<State<StatefulWidget>>(),
     GlobalKey<State<StatefulWidget>>(),
     GlobalKey<State<StatefulWidget>>(),
     GlobalKey<State<StatefulWidget>>(),
@@ -97,208 +136,225 @@ class _MainNavigationPageRefactoredState
       try {
         await context.read<MainNavigationProvider>().refreshPremiumStatus();
       } catch (_) {}
+      if (!mounted) return;
+      final isPremium = context.read<MainNavigationProvider>().isPremium;
       final shown = await PaywallService.isPaywallShown();
-      if (!shown) {
-        await showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (ctx) => PaywallDialog(
-            onBuy: () => Navigator.of(ctx).pop(),
-            onRestore: () => Navigator.of(ctx).pop(),
-          ),
-        );
+      if (!mounted) return;
+      if (!isPremium && (widget.showPaywallOnEnter || !shown)) {
+        await PaywallDialog.show(context);
         await PaywallService.markPaywallShown();
       }
+      // Guided tour right after onboarding (and its paywall).
+      if (mounted &&
+          widget.showPaywallOnEnter &&
+          !await ProductTourService.isDone()) {
+        await _startTour();
+      }
     });
+    ProductTourService.replayRequests.addListener(_startTour);
+  }
+
+  Future<void> _startTour() async {
+    if (!mounted) return;
+    final nav = context.read<MainNavigationProvider>();
+    Future<void> showTab(int i) async {
+      FocusManager.instance.primaryFocus?.unfocus();
+      nav.setNavHidden(false);
+      nav.setCurrentIndex(i);
+      // The style card is not shown in Video mode.
+      if (nav.activeMode == GenerationMode.video) {
+        nav.switchMode(GenerationMode.text);
+      }
+    }
+
+    var mapOpened = false;
+    await ProductTour.show(context, [
+      TourStep(
+        target: ProductTourKeys.style,
+        alsoHighlight: [ProductTourKeys.prompt],
+        icon: Icons.palette_rounded,
+        title: 'Pick a style or describe it',
+        body:
+            'Start from a ready-made look, type your own idea, or both. '
+            'Stuck? Tap the dice for a surprise.',
+        before: () => showTab(0),
+      ),
+      TourStep(
+        target: ProductTourKeys.promptsTab,
+        icon: Icons.lightbulb_rounded,
+        title: 'Explore the style library',
+        body:
+            'Prompts holds every style for this season. Tap a card to '
+            'preview it and use it. PRO styles unlock with Premium.',
+        radius: 22,
+        padding: 2,
+      ),
+      TourStep(
+        target: ProductTourKeys.trendsTab,
+        icon: Icons.local_fire_department_rounded,
+        title: 'Catch the trends',
+        body:
+            'Trends shows the looks going viral right now, and new ones '
+            'drop here all the time.',
+        radius: 22,
+        padding: 2,
+      ),
+      TourStep(
+        target: ProductTourKeys.trendsHero,
+        icon: Icons.whatshot_rounded,
+        title: 'Hop on one',
+        body:
+            'Swipe the top cards for the hottest looks. Tap Try it now and '
+            'the style is ready on the Generate screen.',
+        radius: 24,
+        padding: 4,
+        before: () async {
+          await showTab(2); // Trends
+          // Let the tab switch and the trends load.
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+      ),
+      TourStep(
+        before: () => showTab(0),
+        target: ProductTourKeys.generate,
+        icon: Icons.auto_awesome_rounded,
+        title: 'Create your image',
+        body:
+            'Tap Generate. The button shows the token cost, and every '
+            'result is saved to My Photos.',
+        radius: 18,
+        padding: 4,
+      ),
+      TourStep(
+        target: ProductTourKeys.themeMode,
+        alsoHighlight: [
+          ProductTourKeys.effects,
+          ProductTourKeys.sound,
+          ProductTourKeys.appIcon,
+        ],
+        icon: Icons.tune_rounded,
+        title: 'Make it yours',
+        body:
+            'In Profile, choose light or dark, toggle falling snow and '
+            'embers, play seasonal music and switch the app icon.',
+        radius: 16,
+        padding: 2,
+        before: () => showTab(4), // Profile
+      ),
+      TourStep(
+        target: ProductTourKeys.worldMap,
+        icon: Icons.public_rounded,
+        title: 'Travel through seasons',
+        body:
+            'The app changes with the calendar: new looks, styles and art '
+            'each season. Let\'s open the world map.',
+        actionLabel: 'Open world map',
+        radius: 14,
+        padding: 6,
+        before: () => showTab(0),
+      ),
+      TourStep(
+        target: ProductTourKeys.mapHere,
+        icon: Icons.location_on_rounded,
+        title: 'You are here',
+        body:
+            'Tap an open world to travel there; colors, styles and art '
+            'switch with it. Locked worlds open later in the year.',
+        padding: -12,
+        radius: 60,
+        before: () async {
+          if (!mapOpened) {
+            mapOpened = true;
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SeasonMapPage()));
+            // Let the route slide in and the map settle on the marker.
+            await Future.delayed(const Duration(milliseconds: 900));
+          }
+        },
+      ),
+      TourStep(
+        target: ProductTourKeys.mapAuto,
+        icon: Icons.event_rounded,
+        title: 'Follow the calendar',
+        body:
+            'Keep this on and the app switches worlds when a new season '
+            'starts. Turn it off to stay in the world you picked.',
+        radius: 30,
+        padding: 4,
+      ),
+    ]);
   }
 
   @override
   void dispose() {
+    ProductTourService.replayRequests.removeListener(_startTour);
     _fadeController.dispose();
     _premiumBannerController.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
+  /// "Surprise me": pick a random unlocked style for the current mode. Its
+  /// prompt stays hidden; the user just sees the style card.
+  void _surpriseStyle(MainNavigationProvider provider) {
+    final prompts = context.read<PromptsProvider>();
+    final pool = PromptSuggestions.styles(
+      provider.activeMode,
+    ).where((p) => !prompts.isPromptLocked(p)).toList();
+    if (pool.isEmpty) return;
+    HapticFeedback.selectionClick();
+    provider.setStyle(pool[Random().nextInt(pool.length)]);
+  }
+
+  /// Validates the prompt (and photo) before anything is charged or shown.
+  /// Inline problems shake the prompt field; the rest open the issue sheet.
+  bool _preflight(MainNavigationProvider provider) {
+    final issue = PromptValidator.validate(
+      provider.prompt,
+      mode: provider.activeMode,
+      hasPhoto: provider.uploadedImage != null,
+      hasStyle: provider.style != null,
+    );
+    if (issue == null) return true;
+
+    if (issue.isInline) {
+      HapticFeedback.mediumImpact();
+      context.read<PromptInputProvider>().flagIssue(issue.inlineMessage);
+    } else {
+      showPromptIssueSheet(context, issue);
+    }
+    return false;
+  }
+
+  /// Shows a friendly sheet for a failed generation and, if the user taps
+  /// the primary action on a retryable one, runs [retry].
+  Future<void> _showFailure(Object error, Future<void> Function() retry) async {
+    final issue = GenerationFailure.classify(error);
+    if (issue == null || !mounted) return;
+    final primary = await showPromptIssueSheet(context, issue);
+    if (primary && issue.retryable && mounted) {
+      await retry();
+    }
+  }
+
   Future<void> _showGenerationConfirmationDialog() async {
     final provider = context.read<MainNavigationProvider>();
 
-    if (provider.prompt.isEmpty) {
-      NotificationService.warning(
-        context,
-        message: 'Please enter a prompt to generate an image.',
-      );
-      return;
-    }
+    if (!_preflight(provider)) return;
 
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFF1D162B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header with icon
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6A00).withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.auto_fix_high_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Title
-                const Text(
-                  'Confirm Image Generation',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-
-                // Description
-                Text(
-                  'Are you sure you want to generate an image with this prompt?',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    height: 1.4,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-
-                // Prompt display
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A1F3D),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: const Color(0xFFFF6A00).withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.edit_note_rounded,
-                            color: Color(0xFFFF6A00),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Your Prompt:',
-                            style: TextStyle(
-                              color: Color(0xFFFF6A00),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        provider.prompt,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Action buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6A00),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Generate',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    final nav = context.read<MainNavigationProvider>();
+    final confirmed = await showGenerateConfirmSheet(
+      context,
+      mode: GenerationMode.text,
+      cost: TokenCosts.textToImage,
+      balance: context.read<TokenProvider>().balance,
+      style: nav.style,
+      promptText: nav.prompt,
+      photo: null,
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       await _generateImage();
     }
   }
@@ -306,139 +362,20 @@ class _MainNavigationPageRefactoredState
   Future<void> _showFalAiGenerationConfirmationDialog() async {
     final provider = context.read<MainNavigationProvider>();
 
-    if (provider.prompt.isEmpty) {
-      NotificationService.warning(
-        context,
-        message: 'Please enter a prompt to generate an image.',
-      );
-      return;
-    }
+    if (!_preflight(provider)) return;
 
-    // Require an uploaded image when in Image-to-Image mode
-    if (provider.activeMode == GenerationMode.image &&
-        provider.uploadedImage == null) {
-      NotificationService.warning(
-        context,
-        message: 'Please upload an image for Image-to-Image generation.',
-      );
-      return;
-    }
-
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: const Color(0xFF1D162B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header with icon
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF9C27B0), Color(0xFF673AB7)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF9C27B0).withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.psychology,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Title
-                const Text(
-                  'Confirm Image Generation',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Description
-                const Text(
-                  'Generate your image using AI with optimal quality and speed.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF8C7BA6),
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Color(0xFF8C7BA6),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF9C27B0),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Generate',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+    final nav = context.read<MainNavigationProvider>();
+    final confirmed = await showGenerateConfirmSheet(
+      context,
+      mode: GenerationMode.image,
+      cost: TokenCosts.imageToImage,
+      balance: context.read<TokenProvider>().balance,
+      style: nav.style,
+      promptText: nav.prompt,
+      photo: nav.uploadedImage,
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       await _generateFalAiImage();
     }
   }
@@ -446,15 +383,26 @@ class _MainNavigationPageRefactoredState
   Future<void> _generateImage() async {
     final tokenProvider = context.read<TokenProvider>();
 
+    // Safety gate: never spend tokens on a disallowed prompt.
+    final moderation = PromptEngine.moderate(
+      context.read<MainNavigationProvider>().prompt,
+    );
+    if (!moderation.allowed) {
+      await showBlockedPromptDialog(context, moderation);
+      return;
+    }
+
     // Check if user has tokens before starting
     await tokenProvider.loadBalance();
-    if (tokenProvider.balance < 1) {
+    if (tokenProvider.balance < TokenCosts.textToImage) {
       if (!mounted) return;
-      await showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => const NoTokensDialog(),
+      NotificationService.warning(
+        context,
+        message: NotificationService.outOfTokens,
       );
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
       return;
     }
 
@@ -464,6 +412,8 @@ class _MainNavigationPageRefactoredState
     bool isCancelled = false;
     final progress = showGenerationProgressDialog(
       context,
+      style: provider.style,
+      photo: provider.uploadedImage,
       onCancel: () {
         isCancelled = true;
         provider.setGenerating(false);
@@ -474,18 +424,13 @@ class _MainNavigationPageRefactoredState
       Uint8List resultBytes;
 
       // Use FAL AI FLUX Schnell for text-to-image generation with enhanced configuration
+      final built = PromptEngine.textToImage(
+        provider.prompt,
+        style: provider.style,
+      );
       final result = await FalAiService.generateImage(
-        prompt: PromptBuilder.buildTextToImagePrompt(provider.prompt),
-        numInferenceSteps: 4, // FLUX Schnell default
-        numImages: 1,
-        imageSize: 'square_hd', // FLUX Schnell default
-        guidanceScale: 6.0, // FLUX Schnell default
-        enableSafetyChecker: true,
-        outputFormat: 'jpeg', // FLUX Schnell default
-        syncMode: false,
-        isCancelled: () => isCancelled, // Pass cancellation check
-        style: FluxSchnellStyle.realistic, // Enhanced style support
-        quality: FluxSchnellQuality.balanced, // Enhanced quality support
+        prompt: built.prompt,
+        isCancelled: () => isCancelled,
       );
 
       if (result.images.isEmpty) {
@@ -510,21 +455,17 @@ class _MainNavigationPageRefactoredState
       }
 
       // Consume 1 token for text-to-image generation
-      await tokenProvider.consumeTokens(1);
+      await tokenProvider.consumeTokens(TokenCosts.textToImage);
 
       // Check for low balance after token consumption
       if (tokenProvider.isLowBalance) {
         if (!mounted) return;
-        await showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (_) => const LowBalanceDialog(),
-        );
+        await LowBalanceDialog.show(context);
       }
 
       var generatedResult = GeneratedImageResult(
         imageBytes: resultBytes,
-        prompt: provider.prompt,
+        prompt: provider.promptLabel,
         source: GeneratedImageSource.fal,
         generatedAt: DateTime.now(),
       );
@@ -537,7 +478,7 @@ class _MainNavigationPageRefactoredState
         progress.close();
       } catch (_) {}
 
-      await _showResultDialog(generatedResult);
+      await _showResultDialog(generatedResult, style: provider.style);
 
       // Clear prompt after successful generation
       provider.updatePrompt('');
@@ -558,22 +499,7 @@ class _MainNavigationPageRefactoredState
       if (!isCancelled &&
           e.toString() != 'Exception: Generation cancelled by user' &&
           !e.toString().contains('Generation cancelled by user')) {
-        String errorMessage = NotificationService.generationFailed;
-
-        // Provide specific error messages
-        if (e.toString().contains('timeout')) {
-          errorMessage =
-              'Generation took too long. Please try again with a shorter prompt.';
-        } else if (e.toString().contains('Missing FAL AI API key')) {
-          errorMessage =
-              'FAL AI API key is missing. Please check your configuration.';
-        } else if (e.toString().contains('FAL AI error')) {
-          errorMessage = 'FAL AI service error. Please try again.';
-        } else if (e.toString().contains('405')) {
-          errorMessage = 'API endpoint error. Please try again.';
-        }
-
-        NotificationService.error(context, message: errorMessage);
+        _showFailure(e, _generateImage);
       }
     } finally {
       if (mounted && !isCancelled) {
@@ -588,6 +514,15 @@ class _MainNavigationPageRefactoredState
 
   // New, isolated FAL flow: minimal errors, always try to show the image
   Future<void> _generateFalAiNewFlow() async {
+    // Safety gate: never spend tokens on a disallowed prompt.
+    final moderationResult = PromptEngine.moderate(
+      context.read<MainNavigationProvider>().prompt,
+    );
+    if (!moderationResult.allowed) {
+      await showBlockedPromptDialog(context, moderationResult);
+      return;
+    }
+
     print('🎃 FAL: Starting generation flow');
     final tokenProvider = context.read<TokenProvider>();
     final provider = context.read<MainNavigationProvider>();
@@ -599,16 +534,18 @@ class _MainNavigationPageRefactoredState
         provider.activeMode == GenerationMode.image &&
         provider.uploadedImage != null;
     final double requiredTokens = useImg2Img
-        ? 2.0
-        : 1.0; // 2 tokens for image-to-image, 1 token for text-to-image
+        ? TokenCosts.imageToImage
+        : TokenCosts.textToImage;
 
     if (tokenProvider.balance < requiredTokens) {
       if (!mounted) return;
-      await showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => const NoTokensDialog(),
+      NotificationService.warning(
+        context,
+        message: NotificationService.outOfTokens,
       );
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
       return;
     }
 
@@ -617,6 +554,8 @@ class _MainNavigationPageRefactoredState
     bool isCancelled = false;
     final progress = showGenerationProgressDialog(
       context,
+      style: provider.style,
+      photo: provider.uploadedImage,
       onCancel: () {
         isCancelled = true;
         provider.setGenerating(false);
@@ -633,26 +572,21 @@ class _MainNavigationPageRefactoredState
             ', prompt: ${provider.prompt}',
       );
 
+      final builtI2I = useImg2Img
+          ? PromptEngine.imageToImage(provider.prompt, style: provider.style)
+          : null;
+      final builtT2I = useImg2Img
+          ? null
+          : PromptEngine.textToImage(provider.prompt, style: provider.style);
       final result = useImg2Img
           ? await FalAiService.generateImageFromImage(
-              prompt: PromptBuilder.buildImageToImagePrompt(provider.prompt),
+              prompt: builtI2I!.prompt,
               imageBytes: provider.uploadedImage!,
-              imageStrength:
-                  0.8, // From screenshot - higher strength for scene composition
-              numInferenceSteps: 4, // From screenshot
-              guidanceScale: 6.0, // From screenshot
-              enableSafetyChecker: true, // From screenshot
-              outputFormat: 'jpeg', // From screenshot
+              isCancelled: () => isCancelled,
             )
           : await FalAiService.generateImage(
-              prompt: PromptBuilder.buildTextToImagePrompt(provider.prompt),
-              numInferenceSteps: 4,
-              numImages: 1,
-              imageSize: 'square_hd',
-              guidanceScale: 6.0,
-              enableSafetyChecker: true,
-              outputFormat: 'jpeg',
-              syncMode: false,
+              prompt: builtT2I!.prompt,
+              isCancelled: () => isCancelled,
             );
       print('🎃 FAL: API returned ${result.images.length} images');
 
@@ -702,7 +636,7 @@ class _MainNavigationPageRefactoredState
       if (bytes != null) {
         generationResult = GeneratedImageResult(
           imageBytes: bytes,
-          prompt: provider.prompt,
+          prompt: provider.promptLabel,
           source: GeneratedImageSource.fal,
           generatedAt: DateTime.now(),
           remoteUrl: imageUrl,
@@ -721,22 +655,22 @@ class _MainNavigationPageRefactoredState
         print('🎃 FAL: Displaying image with bytes');
         // Consume tokens based on generation mode
         final double tokensToConsume = useImg2Img
-            ? 2.0
-            : 1.0; // 2 tokens for image-to-image, 1 token for text-to-image
+            ? TokenCosts.imageToImage
+            : TokenCosts.textToImage;
         await tokenProvider.consumeTokens(tokensToConsume);
 
         // Check for low balance after token consumption
         if (tokenProvider.isLowBalance) {
           if (!mounted) return;
-          await showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => const LowBalanceDialog(),
-          );
+          await LowBalanceDialog.show(context);
         }
 
         provider.addGeneratedImage(finalizedResult);
-        await _showResultDialog(finalizedResult);
+        await _showResultDialog(
+          finalizedResult,
+          style: provider.style,
+          isImageToImage: useImg2Img,
+        );
 
         // Clear prompt and uploaded image after successful generation
         provider.updatePrompt('');
@@ -753,25 +687,21 @@ class _MainNavigationPageRefactoredState
         // Final fallback: show network image in dialog
         // Consume tokens based on generation mode
         final double tokensToConsume = useImg2Img
-            ? 2.0
-            : 1.0; // 2 tokens for image-to-image, 1 token for text-to-image
+            ? TokenCosts.imageToImage
+            : TokenCosts.textToImage;
         await tokenProvider.consumeTokens(tokensToConsume);
 
         // Check for low balance after token consumption
         if (tokenProvider.isLowBalance) {
           if (!mounted) return;
-          await showDialog(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => const LowBalanceDialog(),
-          );
+          await LowBalanceDialog.show(context);
         }
 
         await showDialog<void>(
           context: context,
           builder: (context) {
             return Dialog(
-              backgroundColor: const Color(0xFF1D162B),
+              backgroundColor: SeasonPalette.inputFill,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -840,11 +770,14 @@ class _MainNavigationPageRefactoredState
         }
       }
     } catch (e) {
-      // Swallow service errors in new flow; show nothing rather than error
       print('🎃 FAL: Generation failed: $e');
       try {
         progress.close();
       } catch (_) {}
+      if (!isCancelled) {
+        // Tell the user what happened instead of failing silently.
+        _showFailure(e, _generateFalAiNewFlow);
+      }
     } finally {
       if (mounted && !isCancelled) {
         provider.setGenerating(false);
@@ -852,203 +785,39 @@ class _MainNavigationPageRefactoredState
     }
   }
 
+  /// Opens the result as its own screen (not a dialog): picture, style and
+  /// description, with Save, Share and Make video.
   Future<void> _showResultDialog(
     GeneratedImageResult result, {
-    Future<GeneratedImageResult?>? initialPersistFuture,
+    PromptItem? style,
+    bool isImageToImage = false,
   }) async {
-    GeneratedImageResult currentResult = result;
-    bool isPersisted = result.isPersisted;
-    bool isSaving = false;
-    bool initialAttached = false;
-
-    void attachPersistFuture(
-      Future<GeneratedImageResult?> future,
-      StateSetter setState,
-    ) {
-      setState(() {
-        isSaving = true;
-      });
-      future
-          .then((updated) {
-            if (updated != null) {
-              setState(() {
-                currentResult = updated;
-                isPersisted = updated.isPersisted;
-              });
-            }
-          })
-          .catchError((_) {})
-          .whenComplete(() {
-            setState(() {
-              isSaving = false;
-            });
-          });
-    }
-
-    return showDialog<void>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            if (!initialAttached && initialPersistFuture != null) {
-              initialAttached = true;
-              attachPersistFuture(initialPersistFuture, setState);
-            }
-
-            return Dialog(
-              backgroundColor: const Color(0xFF1D162B),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
-                    ),
-                    child: Container(
-                      width: 280,
-                      height: 280,
-                      child: Image.memory(
-                        currentResult.imageBytes,
-                        fit: BoxFit.cover,
-                        width: 280,
-                        height: 280,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2A1F3D),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Prompt',
-                                style: TextStyle(
-                                  color: Color(0xFFFF6A00),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                currentResult.prompt,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Action buttons
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton.icon(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    icon: const Icon(Icons.close),
-                                    label: const Text('Close'),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: FilledButton.icon(
-                                    onPressed: isPersisted || isSaving
-                                        ? null
-                                        : () {
-                                            final future =
-                                                _persistGeneratedImage(
-                                                  currentResult,
-                                                  showSuccessNotification: true,
-                                                );
-                                            attachPersistFuture(
-                                              future,
-                                              setState,
-                                            );
-                                          },
-                                    icon: isSaving
-                                        ? const SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    Colors.white,
-                                                  ),
-                                            ),
-                                          )
-                                        : Icon(
-                                            isPersisted
-                                                ? Icons.check
-                                                : Icons.download,
-                                          ),
-                                    label: Text(isPersisted ? 'Saved' : 'Save'),
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0xFFFF6A00),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () async {
-                                      await _shareGeneratedImage(currentResult);
-                                    },
-                                    icon: const Icon(Icons.share),
-                                    label: const Text('Share'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      side: BorderSide(
-                                        color: Colors.white.withOpacity(0.2),
-                                      ),
-                                      backgroundColor: const Color(
-                                        0xFF2A1F3D,
-                                      ).withOpacity(0.6),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+    // Keep every finished picture: it is saved inside the app right away, so
+    // it is in the Photos tab even if the app is closed before the user does
+    // anything. (Save on the result screen copies it to the phone's photos.)
+    final kept =
+        await _persistGeneratedImage(
+          result,
+          showSuccessNotification: false,
+          isImageToImage: isImageToImage,
+          exportToGallery: false,
+        ) ??
+        result;
+    if (!mounted) return;
+    return openGeneratedResultPage(
+      context,
+      result: kept,
+      style: style,
+      mode: isImageToImage ? GenerationMode.image : GenerationMode.text,
+      onShare: _shareGeneratedImage,
     );
   }
 
   Future<GeneratedImageResult?> _persistGeneratedImage(
     GeneratedImageResult result, {
     bool showSuccessNotification = true,
+    bool isImageToImage = false,
+    bool exportToGallery = true,
   }) async {
     if (!mounted) return null;
     final navigationProvider = context.read<MainNavigationProvider>();
@@ -1067,8 +836,9 @@ class _MainNavigationPageRefactoredState
       await context.read<SavedImagesProvider>().addSavedImage(
         imageBytes: result.imageBytes,
         prompt: result.prompt,
-        isImageToImage: false,
+        isImageToImage: isImageToImage,
         originalImagePath: null,
+        exportToGallery: exportToGallery,
       );
       final updated = navigationProvider.markImagePersisted(result);
       if (showSuccessNotification) {
@@ -1097,9 +867,18 @@ class _MainNavigationPageRefactoredState
           'ghostface_${result.generatedAt.millisecondsSinceEpoch}.png';
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(result.imageBytes, flush: true);
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: result.prompt.isNotEmpty ? 'Prompt: ${result.prompt}' : null);
+      // Anchors the share sheet on iPad; without it the sheet can fail to
+      // appear there.
+      final box = context.findRenderObject() as RenderBox?;
+      final origin = box == null
+          ? null
+          : box.localToGlobal(Offset.zero) & box.size;
+      unawaited(AnalyticsService.imageShared('image'));
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Created with SpookyAI',
+        sharePositionOrigin: origin,
+      );
     } catch (e) {
       if (!mounted) return;
       NotificationService.error(
@@ -1128,10 +907,26 @@ class _MainNavigationPageRefactoredState
         }
         return Scaffold(
           resizeToAvoidBottomInset: false,
+          extendBody: true,
           body: IndexedStack(
             index: provider.currentIndex,
             children: [
               _buildGenerateTab(provider),
+              PromptsPage(
+                key: _pageKeys[2],
+                filterRequest: _promptsFilterRequest,
+                onUseStyle: (style) {
+                  provider.setStyle(style);
+                  provider.setCurrentIndex(0); // back to Generate
+                },
+              ),
+              TrendPage(
+                key: _pageKeys[4],
+                onUseStyle: (style) {
+                  provider.setStyle(style);
+                  provider.setCurrentIndex(0); // back to Generate
+                },
+              ),
               PhotosPage(
                 key: _pageKeys[1],
                 onNavigateToGenerate: () {
@@ -1143,73 +938,52 @@ class _MainNavigationPageRefactoredState
                   );
                 },
               ),
-              PromptsPage(
-                key: _pageKeys[2],
-                onPromptSelected: (prompt) {
-                  provider.updatePrompt(prompt);
-                  provider.setCurrentIndex(0); // Navigate to generate tab
-                  _pageController.animateToPage(
-                    0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-              ),
               ProfilePage(key: _pageKeys[3]),
             ],
           ),
-          bottomNavigationBar: Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  const Color(0xFF0F0B1A).withOpacity(0.8),
-                  const Color(0xFF0F0B1A).withOpacity(0.95),
+          bottomNavigationBar: AnimatedSlide(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            offset: provider.navHidden ? const Offset(0, 1.6) : Offset.zero,
+            child: ValueListenableBuilder<TrendScreenConfig>(
+              valueListenable: TrendService.config,
+              builder: (context, trendCfg, _) => AppBottomNav(
+                currentIndex: provider.currentIndex,
+                onChanged: provider.setCurrentIndex,
+                itemKeys: {
+                  1: ProductTourKeys.promptsTab,
+                  2: ProductTourKeys.trendsTab,
+                },
+                items: [
+                  const AppNavItem(
+                    icon: Icons.auto_awesome_outlined,
+                    activeIcon: Icons.auto_awesome_rounded,
+                    label: 'Generate',
+                  ),
+                  const AppNavItem(
+                    icon: Icons.lightbulb_outline_rounded,
+                    activeIcon: Icons.lightbulb_rounded,
+                    label: 'Prompts',
+                  ),
+                  AppNavItem(
+                    icon: Icons.local_fire_department_outlined,
+                    activeIcon: Icons.local_fire_department_rounded,
+                    label: trendCfg.tabLabel,
+                  featured: true,
+                  featuredColors: trendCfg.tabColors,
+                  ),
+                  const AppNavItem(
+                    icon: Icons.photo_library_outlined,
+                    activeIcon: Icons.photo_library_rounded,
+                    label: 'Photos',
+                  ),
+                  const AppNavItem(
+                    icon: Icons.person_outline_rounded,
+                    activeIcon: Icons.person_rounded,
+                    label: 'Profile',
+                  ),
                 ],
               ),
-            ),
-            child: Row(
-              children: [
-                // Generate Button
-                Expanded(
-                  child: _buildNavButton(
-                    index: 0,
-                    icon: Icons.auto_fix_high,
-                    label: 'Generate',
-                    provider: provider,
-                  ),
-                ),
-                // Photos Button
-                Expanded(
-                  child: _buildNavButton(
-                    index: 1,
-                    icon: Icons.photo_library_outlined,
-                    label: 'Photos',
-                    provider: provider,
-                  ),
-                ),
-                // Prompts Button
-                Expanded(
-                  child: _buildNavButton(
-                    index: 2,
-                    icon: Icons.lightbulb_outline,
-                    label: 'Prompts',
-                    provider: provider,
-                  ),
-                ),
-                // Profile Button
-                Expanded(
-                  child: _buildNavButton(
-                    index: 3,
-                    icon: Icons.person_outline,
-                    label: 'Profile',
-                    provider: provider,
-                  ),
-                ),
-              ],
             ),
           ),
         );
@@ -1223,15 +997,11 @@ class _MainNavigationPageRefactoredState
       height: 40,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6A00), Color(0xFFFF8A00), Color(0xFFFFA500)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
+        color: SeasonPalette.accent,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF6A00).withOpacity(0.3),
+            color: SeasonPalette.accent.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1301,79 +1071,40 @@ class _MainNavigationPageRefactoredState
     );
   }
 
+  /// Loads a showcase example (its photo and motion hint) so the user can
+  /// make the same video with one more tap.
+  Future<void> _tryVideoExample(
+    MainNavigationProvider provider,
+    VideoSample sample,
+  ) async {
+    final data = await rootBundle.load(sample.still);
+    if (!mounted) return;
+    provider.setUploadedImage(data.buffer.asUint8List());
+    provider.updatePrompt(sample.motion);
+    NotificationService.success(
+      context,
+      message: 'Example loaded. Tap Generate to make your video.',
+    );
+  }
+
+  void _surpriseMotion(MainNavigationProvider provider) {
+    final ideas = IdeaChips.videoIdeas();
+    HapticFeedback.selectionClick();
+    provider.updatePrompt(ideas[Random().nextInt(ideas.length)]);
+  }
+
   Widget _buildGenerateTab(MainNavigationProvider provider) {
+    final isVideo = provider.activeMode == GenerationMode.video;
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.auto_fix_high_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'SpookyAI',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
-              ),
-            ),
-          ],
+        title: const AppBarTitle(
+          icon: Icons.auto_fix_high_rounded,
+          title: 'SpookyAI',
         ),
-        backgroundColor: const Color(0xFF0F0B1A),
+        backgroundColor: SeasonPalette.scaffold,
         elevation: 0,
         toolbarHeight: AppMetrics.toolbarHeight,
         actions: [
-          // Help Button
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _showHelpDialog,
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6A00).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.help_outline,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
           // Token Purchase Button
           TokenDisplayWidget(
             onTap: () async {
@@ -1382,9 +1113,19 @@ class _MainNavigationPageRefactoredState
               ).push(MaterialPageRoute(builder: (_) => const PurchasePage()));
             },
           ),
+          const SizedBox(width: 2),
+          // World map: pick the season theme
+          WorldMapButton(
+            key: ProductTourKeys.worldMap,
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SeasonMapPage())),
+          ),
+          const SizedBox(width: 8),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(provider.isPremium ? 40 : 0),
+          // banner 40 + vertical margin 2×8 — must match or the title row is squeezed.
+          preferredSize: Size.fromHeight(provider.isPremium ? 56 : 0),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             transitionBuilder: (Widget child, Animation<double> animation) {
@@ -1408,143 +1149,189 @@ class _MainNavigationPageRefactoredState
           ),
         ),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          // Subtle background decorations
-          Positioned(
-            top: 24,
-            left: -8,
-            child: Opacity(
-              opacity: 0.08,
-              child: Text('🕸️', style: TextStyle(fontSize: 72)),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            right: 16,
-            child: Opacity(
-              opacity: 0.08,
-              child: Text('🎃', style: TextStyle(fontSize: 72)),
-            ),
-          ),
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Column(
-                children: [
-                  // Main content area
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final bottomInset = MediaQuery.of(
-                          context,
-                        ).viewInsets.bottom;
-                        return SingleChildScrollView(
-                          physics: bottomInset > 0
-                              ? const BouncingScrollPhysics()
-                              : const NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            0,
-                            16,
-                            80 + bottomInset, // Extra space for fixed button
-                          ),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight - bottomInset,
-                            ),
-                            child: Column(
-                              children: [
-                                // Welcome section with Halloween title
-                                Container(
-                                  height: 44,
-                                  margin: const EdgeInsets.fromLTRB(
-                                    0,
-                                    12,
-                                    0,
-                                    12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFFFF6A00),
-                                        Color(0xFF9C27B0),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.auto_fix_high_rounded,
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        'Happy Halloween! Get spooky with your edits',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // Image upload area (visible only in image-to-image mode)
-                                if (provider.activeMode == GenerationMode.image)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: ImageUploadWidget(
-                                      uploadedImage: provider.uploadedImage,
-                                      onImageSelected: (bytes) {
-                                        provider.setUploadedImage(bytes);
-                                      },
-                                      onImageRemoved: () {
-                                        provider.removeUploadedImage();
-                                      },
-                                    ),
-                                  ),
-
-                                // Spacing
-                                const SizedBox(height: 8),
-                                // Prompt input
-                                PromptInputWidget(
-                                  onPromptChanged: (prompt) {
-                                    provider.updatePrompt(prompt);
-                                  },
-                                  hintText: 'Describe your Halloween scene...',
-                                  initialText: provider.prompt,
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Fixed Mode selector row
-                                _buildCompactModeSelector(provider),
-                                // Latest Creations removed
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 24,
+                  left: -8,
+                  child: Opacity(
+                    opacity: 0.07,
+                    child: Text(
+                      SeasonPalette.t('🕸️'),
+                      style: const TextStyle(fontSize: 72),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  bottom: 24,
+                  right: 16,
+                  child: Opacity(
+                    opacity: 0.07,
+                    child: Text(
+                      SeasonPalette.t('🎃'),
+                      style: const TextStyle(fontSize: 72),
+                    ),
+                  ),
+                ),
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTap: () => FocusScope.of(context).unfocus(),
+                      child: SingleChildScrollView(
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildCompactModeSelector(provider),
+                            const SizedBox(height: 16),
+                            if (isVideo)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: VideoExamplesButton(
+                                  onTryExample: (s) =>
+                                      _tryVideoExample(provider, s),
+                                ),
+                              ),
+                            if (!isVideo)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: KeyedSubtree(
+                                  key: ProductTourKeys.style,
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 220),
+                                    child: provider.style != null
+                                        ? Padding(
+                                            key: ValueKey(provider.style!.id),
+                                            padding: const EdgeInsets.only(
+                                              bottom: 0,
+                                            ),
+                                            child: SelectedStyleCard(
+                                              style: provider.style!,
+                                              onChange: () =>
+                                                  _openStyles(provider),
+                                              onRemove: provider.clearStyle,
+                                            ),
+                                          )
+                                        : Padding(
+                                            key: const ValueKey('choose-style'),
+                                            padding: const EdgeInsets.only(
+                                              bottom: 0,
+                                            ),
+                                            child: ChooseStyleCard(
+                                              isPhoto:
+                                                  provider.activeMode ==
+                                                  GenerationMode.image,
+                                              previewStyles:
+                                                  PromptSuggestions.styles(
+                                                    provider.activeMode,
+                                                  ).take(3).toList(),
+                                              onTap: () =>
+                                                  _openStyles(provider),
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOutCubic,
+                              alignment: Alignment.topCenter,
+                              child: provider.activeMode != GenerationMode.text
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 16,
+                                      ),
+                                      child: ImageUploadWidget(
+                                        uploadedImage: provider.uploadedImage,
+                                        onImageSelected:
+                                            provider.setUploadedImage,
+                                        onImageRemoved:
+                                            provider.removeUploadedImage,
+                                      ),
+                                    )
+                                  : const SizedBox(width: double.infinity),
+                            ),
+                            KeyedSubtree(
+                              key: ProductTourKeys.prompt,
+                              child: PromptInputWidget(
+                                onPromptChanged: provider.updatePrompt,
+                                title: isVideo
+                                    ? 'How should it move? (optional)'
+                                    : provider.style != null
+                                    ? 'Add details (optional)'
+                                    : provider.activeMode ==
+                                          GenerationMode.image
+                                    ? SeasonPalette.current.copy.imageTitle
+                                    : SeasonPalette.current.copy.textTitle,
+                                hintText: isVideo
+                                    ? 'e.g. fog drifting slowly, slow zoom in'
+                                    : provider.style != null
+                                    ? SeasonPalette
+                                          .current
+                                          .copy
+                                          .styleDetailsHint
+                                    : provider.activeMode ==
+                                          GenerationMode.image
+                                    ? SeasonPalette.current.copy.imageHint
+                                    : SeasonPalette.current.copy.textHint,
+                                initialText: provider.prompt,
+                                onSurprise: isVideo
+                                    ? () => _surpriseMotion(provider)
+                                    : () => _surpriseStyle(provider),
+                                minLines: isVideo || provider.style != null
+                                    ? 2
+                                    : 4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-
-          // Generate buttons (fixed at bottom, above home indicator)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 16,
-            child: SafeArea(
-              minimum: const EdgeInsets.only(left: 0, right: 0, bottom: 8),
-              child: _buildGenerateButtons(provider),
-            ),
+          Consumer<TokenProvider>(
+            builder: (context, tokens, _) {
+              final isImage = provider.activeMode == GenerationMode.image;
+              return GenerateActionBar(
+                key: ProductTourKeys.generate,
+                mode: provider.activeMode,
+                // The motion hint is optional for a video.
+                hasPrompt: isVideo || provider.hasPromptInput,
+                hasImage: provider.uploadedImage != null,
+                balance: tokens.balance,
+                cost: isVideo
+                    ? TokenCosts.imageToVideo
+                    : isImage
+                    ? TokenCosts.imageToImage
+                    : TokenCosts.textToImage,
+                isGenerating: provider.isGenerating,
+                onGenerate: isVideo
+                    ? () => startImageToVideo(
+                        context,
+                        null,
+                        imageBytes: provider.uploadedImage,
+                        initialMotion: provider.prompt,
+                      )
+                    : isImage
+                    ? _showFalAiGenerationConfirmationDialog
+                    : _showGenerationConfirmationDialog,
+                onGetTokens: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const PurchasePage())),
+              );
+            },
           ),
         ],
       ),
@@ -1552,484 +1339,9 @@ class _MainNavigationPageRefactoredState
   }
 
   Widget _buildCompactModeSelector(MainNavigationProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1D162B),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Image to Image Mode (Coming Soon)
-          Expanded(
-            child: Stack(
-              children: [
-                _buildModeCard(
-                  mode: GenerationMode.image,
-                  icon: Icons.image_rounded,
-                  title: 'Image to Image',
-                  subtitle: null,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  provider: provider,
-                  isDisabled: false,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 6),
-          // Text to Image Mode
-          Expanded(
-            child: _buildModeCard(
-              mode: GenerationMode.text,
-              icon: Icons.text_fields_rounded,
-              title: 'Text to Image',
-              subtitle: null,
-              gradient: const LinearGradient(
-                colors: [Color(0xFFB25AFF), Color(0xFF8B5CF6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              provider: provider,
-              isDisabled: false,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showHelpDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1D162B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.auto_fix_high,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Text(
-                      'How to Use SpookyAI',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Content
-              const Text(
-                'Create amazing Halloween images with AI! Here\'s how to get the best results:',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-
-              // Tips
-              _buildHelpTip(
-                icon: Icons.text_fields,
-                title: 'Write Detailed Prompts',
-                description:
-                    'Be specific about what you want. Instead of "scary", try "spooky haunted mansion with glowing windows and fog"',
-              ),
-              const SizedBox(height: 16),
-
-              _buildHelpTip(
-                icon: Icons.auto_awesome,
-                title: 'Use Ready-Made Prompts',
-                description:
-                    'For better results, use the pre-made prompts in the Prompts section. They\'re optimized for Halloween themes!',
-              ),
-              const SizedBox(height: 16),
-
-              _buildHelpTip(
-                icon: Icons.image,
-                title: 'Image-to-Image Mode',
-                description:
-                    'Upload your photo and transform it into a Halloween character. Perfect for creating spooky versions of yourself!',
-              ),
-              const SizedBox(height: 16),
-
-              _buildHelpTip(
-                icon: Icons.local_fire_department,
-                title: 'Token System',
-                description:
-                    'Text-to-image costs 1 token, Image-to-image costs 2 tokens. Watch ads to earn free tokens!',
-              ),
-              const SizedBox(height: 24),
-
-              // Close Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF6A00),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Got it!',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHelpTip({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF6A00).withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: const Color(0xFFFF6A00), size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenerateButtons(MainNavigationProvider provider) {
-    if (provider.activeMode == GenerationMode.image) {
-      // Image to Image Mode - Show FAL AI Generate Button
-      return Consumer<TokenProvider>(
-        builder: (context, tokenProvider, child) {
-          final hasTokens =
-              tokenProvider.balance >= 2.0; // 2 tokens for image-to-image
-          final hasImage =
-              provider.uploadedImage !=
-              null; // Image required for image-to-image
-          final canGenerate =
-              !provider.isGenerating &&
-              provider.prompt.isNotEmpty &&
-              hasTokens &&
-              hasImage;
-
-          return FilledButton.icon(
-            onPressed: canGenerate
-                ? _showFalAiGenerationConfirmationDialog
-                : null,
-            icon: provider.isGenerating
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.psychology),
-            label: Text(
-              provider.isGenerating
-                  ? 'Generating...'
-                  : !hasTokens
-                  ? 'Token Required (2 Tokens)'
-                  : 'Generate Image (2 Tokens)',
-            ),
-            style: FilledButton.styleFrom(
-              backgroundColor: canGenerate
-                  ? const Color(0xFF9C27B0)
-                  : const Color(0xFF4B5563),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          );
-        },
-      );
-    } else {
-      // Text to Image Mode - Show Regular Generate Button
-      return Consumer<TokenProvider>(
-        builder: (context, tokenProvider, child) {
-          final hasTokens =
-              tokenProvider.balance >= 1.0; // 1 token for text-to-image
-          final canGenerate =
-              !provider.isGenerating && provider.prompt.isNotEmpty && hasTokens;
-
-          return FilledButton.icon(
-            onPressed: canGenerate ? _showGenerationConfirmationDialog : null,
-            icon: provider.isGenerating
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.auto_fix_high),
-            label: Text(
-              provider.isGenerating
-                  ? 'Generating...'
-                  : !hasTokens
-                  ? 'Token Required (1 Token)'
-                  : 'Generate Image (1 Token)',
-            ),
-            style: FilledButton.styleFrom(
-              backgroundColor: canGenerate
-                  ? const Color(0xFFFF6A00)
-                  : const Color(0xFF4B5563),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          );
-        },
-      );
-    }
-  }
-
-  Widget _buildModeCard({
-    required GenerationMode mode,
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required Gradient gradient,
-    required MainNavigationProvider provider,
-    required bool isDisabled,
-  }) {
-    final isSelected = provider.activeMode == mode;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isDisabled ? null : () => provider.switchMode(mode),
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          height: 64, // Fixed height for both buttons
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            gradient: isSelected && !isDisabled ? gradient : null,
-            color: isSelected && !isDisabled
-                ? null
-                : (isDisabled
-                      ? Colors.grey.withOpacity(0.2)
-                      : Colors.transparent),
-            border: Border.all(
-              color: isSelected && !isDisabled
-                  ? Colors.white.withOpacity(0.2)
-                  : Colors.transparent,
-              width: 1,
-            ),
-            boxShadow: isSelected && !isDisabled
-                ? [
-                    BoxShadow(
-                      color: gradient.colors.first.withOpacity(0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icon container
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isSelected && !isDisabled
-                      ? Colors.white.withOpacity(0.15)
-                      : (isDisabled
-                            ? Colors.grey.withOpacity(0.3)
-                            : gradient.colors.first.withOpacity(0.15)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  color: isDisabled
-                      ? Colors.grey.withOpacity(0.6)
-                      : (isSelected ? Colors.white : gradient.colors.first),
-                  size: 14,
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Title and subtitle
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: subtitle != null
-                            ? 12
-                            : 14, // Smaller title for buttons with subtitle
-                        fontWeight: FontWeight.w600,
-                        color: isDisabled
-                            ? Colors.grey.withOpacity(0.6)
-                            : (isSelected ? Colors.white : Colors.white),
-                        letterSpacing: -0.1,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 9, // Smaller subtitle text
-                          fontWeight: FontWeight.w500,
-                          color: isDisabled
-                              ? Colors.grey.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.7),
-                          letterSpacing: -0.1,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavButton({
-    required int index,
-    required IconData icon,
-    required String label,
-    required MainNavigationProvider provider,
-  }) {
-    final isSelected = provider.currentIndex == index;
-
-    return GestureDetector(
-      onTap: () {
-        provider.setCurrentIndex(index);
-      },
-      child: Container(
-        height: 48,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? const Color(0xFFFF6A00)
-              : const Color(0xFF1D162B).withOpacity(0.9),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: isSelected
-                ? const Color(0xFFFF6A00).withOpacity(0.3)
-                : Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFFFF6A00).withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 2,
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : const Color(0xFF8C7BA6),
-              size: 20,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? Colors.white : const Color(0xFF8C7BA6),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return GenerationModeSwitcher(
+      mode: provider.activeMode,
+      onChanged: provider.switchMode,
     );
   }
 }

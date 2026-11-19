@@ -30,7 +30,7 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+/build
 /coverage/
 
 # Symbolication related
@@ -57,7 +57,6 @@ api_keys.json
 lib/core/config/api_keys.dart
 lib/core/services/stability_service.dart
 lib/features/home/presentation/pages/api_key_page.dart
-lib/core/services/promo_code_service.dart
 
 # History files (contain sensitive data)
 .history/
@@ -77,3 +76,28 @@ lib/core/services/promo_code_service.dart
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Local dart-define files (may contain keys)
+env.json
+env.prod.json
+*.env.json
+
+# Secrets: signing keys, store credentials, env files (env.example stays tracked)
+.env.*
+!env.example
+**/key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
+*.pem
+service-account*.json
+
+# Marketing video sources (not bundled in the app)
+assets/images/characters/
+
+# Firebase client config (kept out of the public repo)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart

@@ -5,6 +5,9 @@ import 'image_storage_service.dart';
 
 class SavedImagesProvider extends ChangeNotifier {
   List<SavedImage> _images = <SavedImage>[];
+  // Small LRU: only the pictures on screen stay in memory, not the whole
+  // gallery.
+  static const int _cacheLimit = 24;
   final Map<String, Uint8List> _imageBytesCache = <String, Uint8List>{};
   bool _isLoading = false;
 
@@ -31,14 +34,15 @@ class SavedImagesProvider extends ChangeNotifier {
     required String prompt,
     bool isImageToImage = false,
     String? originalImagePath,
+    bool exportToGallery = true,
   }) async {
     await ImageStorageService.saveImage(
       imageBytes: imageBytes,
       prompt: prompt,
       isImageToImage: isImageToImage,
       originalImagePath: originalImagePath,
+      exportToGallery: exportToGallery,
     );
-    _imageBytesCache.removeWhere((_, __) => true); // invalidate cache
     await load();
   }
 
@@ -51,12 +55,17 @@ class SavedImagesProvider extends ChangeNotifier {
   }
 
   Future<Uint8List?> getImageBytes(String imageId, String filePath) async {
-    if (_imageBytesCache.containsKey(imageId)) {
-      return _imageBytesCache[imageId];
+    final cached = _imageBytesCache.remove(imageId);
+    if (cached != null) {
+      _imageBytesCache[imageId] = cached; // most recently used goes last
+      return cached;
     }
     final bytes = await ImageStorageService.getImageBytes(filePath);
     if (bytes != null) {
       _imageBytesCache[imageId] = bytes;
+      while (_imageBytesCache.length > _cacheLimit) {
+        _imageBytesCache.remove(_imageBytesCache.keys.first);
+      }
     }
     return bytes;
   }

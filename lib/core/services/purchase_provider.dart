@@ -12,9 +12,8 @@ class Pack {
     required this.productId,
     required this.price,
     required this.note,
-    required this.imageAsset,
-    this.whiteTint = false,
     this.isPremium = false,
+    this.isPopular = false,
     this.features = const [],
   });
   final String name;
@@ -22,15 +21,18 @@ class Pack {
   final String productId; // App Store Product ID
   final String price; // display only
   final String note;
-  final String imageAsset;
-  final bool whiteTint;
   final bool isPremium;
+
+  /// Highlighted as the recommended pick (one token pack at most).
+  final bool isPopular;
   final List<String> features;
 
   // Get real price from InAppPurchaseService
   String get realPrice {
     final product = InAppPurchaseService.getProductById(productId);
-    return product?.price ?? price;
+    // Store price is already localized ("$19.99", "₺49,99"). The bundled
+    // fallback is a bare USD number, so give it its currency sign.
+    return product?.price ?? '\$$price';
   }
 }
 
@@ -46,6 +48,50 @@ class PurchaseProvider extends ChangeNotifier {
   bool get isPremium => _isPremium;
   int? get selectedIndex => _selectedIndex;
   bool get isLoading => _isLoading;
+
+  bool _packsLoading = false;
+  Future<void>? _packsFuture;
+
+  /// True while store products are being fetched for the packs list.
+  bool get packsLoading => _packsLoading;
+
+  /// Store products (localized prices) are loaded, so packs can be bought.
+  bool get storeReady =>
+      _packs.isNotEmpty && InAppPurchaseService.products.isNotEmpty;
+
+  /// Loads the packs and their store products if they are not loaded yet.
+  /// Safe to call from anywhere (e.g. the post-onboarding paywall); concurrent
+  /// calls share one request. [force] re-queries the store (Retry button).
+  Future<void> ensurePacksLoaded({bool force = false}) {
+    if (!force && storeReady) return Future.value();
+    return _packsFuture ??= _loadPacks().whenComplete(
+      () => _packsFuture = null,
+    );
+  }
+
+  Future<void> _loadPacks() async {
+    _packsLoading = true;
+    notifyListeners();
+    try {
+      // Startup init may have failed (e.g. offline at launch). It returns
+      // before subscribing to the purchase stream in that case, so retrying
+      // it does not add a second listener.
+      if (!InAppPurchaseService.isAvailable) {
+        await InAppPurchaseService.initialize();
+      }
+      if (InAppPurchaseService.isAvailable &&
+          InAppPurchaseService.products.isEmpty) {
+        await InAppPurchaseService.forceReloadProducts();
+      }
+      await _loadPremiumStatus();
+      _initializePacks();
+    } catch (e) {
+      debugPrint('PurchaseProvider: Failed to load packs: $e');
+    } finally {
+      _packsLoading = false;
+      notifyListeners();
+    }
+  }
 
   // Initialize the provider
   Future<void> initialize() async {
@@ -260,7 +306,6 @@ class PurchaseProvider extends ChangeNotifier {
 
     // Check for our specific products
     final requiredProducts = [
-      '1_token',
       '10_token',
       '25_token',
       '60_token',

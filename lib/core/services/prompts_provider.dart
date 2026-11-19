@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/home/data/models/prompt_category.dart';
 import '../../features/home/data/models/user_prompt.dart';
 import '../../features/home/data/services/prompt_service.dart';
@@ -31,6 +32,62 @@ class PromptsProvider extends ChangeNotifier {
 
   PromptsProvider() {
     _initializePremiumStatus();
+    _loadFavorites();
+    _loadDebugUnlock();
+  }
+
+  // Debug builds only: open every pro prompt for testing. It has no effect in
+  // release builds, whatever is stored.
+  static const _kDebugUnlock = 'debug_unlock_all_prompts';
+  bool _debugUnlockAll = false;
+  bool get debugUnlockAll => kDebugMode && _debugUnlockAll;
+
+  Future<void> _loadDebugUnlock() async {
+    if (!kDebugMode) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _debugUnlockAll = prefs.getBool(_kDebugUnlock) ?? false;
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> setDebugUnlockAll(bool value) async {
+    if (!kDebugMode) return;
+    _debugUnlockAll = value;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_kDebugUnlock, value);
+    } catch (_) {}
+  }
+
+  // Favorites (prompt ids, oldest first), persisted locally.
+  static const _kFavorites = 'favorite_prompt_ids';
+  final List<String> _favoriteIds = [];
+  List<String> get favoriteIds => List.unmodifiable(_favoriteIds);
+  bool isFavorite(String id) => _favoriteIds.contains(id);
+
+  Future<void> _loadFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _favoriteIds
+        ..clear()
+        ..addAll(prefs.getStringList(_kFavorites) ?? const []);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('PromptsProvider: Error loading favorites: $e');
+    }
+  }
+
+  Future<void> toggleFavorite(String id) async {
+    if (!_favoriteIds.remove(id)) _favoriteIds.add(id);
+    notifyListeners(); // optimistic: UI updates immediately
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_kFavorites, _favoriteIds);
+    } catch (e) {
+      debugPrint('PromptsProvider: Error saving favorites: $e');
+    }
   }
 
   @override
@@ -121,12 +178,7 @@ class PromptsProvider extends ChangeNotifier {
   }
 
   // Premium prompt check
-  bool isPromptPremium(PromptItem prompt) {
-    // Make every other prompt premium (50% premium)
-    // Use prompt title hash to determine if it's premium
-    final hash = prompt.title.hashCode;
-    return hash.abs() % 2 == 1; // Every second prompt is premium
-  }
+  bool isPromptPremium(PromptItem prompt) => prompt.isPremium;
 
   // User prompt operations
   Future<void> updateUserPromptUsage(String promptId) async {
@@ -160,9 +212,28 @@ class PromptsProvider extends ChangeNotifier {
   int get totalSearchResults =>
       _searchResults.length + _userPromptSearchResults.length;
 
-  // Check if prompt is locked (premium and user not premium)
+  /// Free users can use this many ready-made prompts per mode (text and
+  /// photo); the rest need Premium. "First" follows the order the Prompts
+  /// screen shows: popular first, then authoring order.
+  static const int freePromptsPerMode =
+      3; // text-to-image; image-to-image has 5
+
+  /// Styles a free user cannot open, across all seasons and both modes.
+  static int get lockedCountAllSeasons {
+    var total = 0;
+    for (final library in PromptService.allSeasonLibraries) {
+      for (final type in PromptType.values) {
+        total += [
+          for (final c in library) ...c.prompts,
+        ].where((p) => p.promptType == type && p.isPremium).length;
+      }
+    }
+    return total;
+  }
+
   bool isPromptLocked(PromptItem prompt) {
-    return isPromptPremium(prompt) && !_isPremium;
+    if (_isPremium || debugUnlockAll) return false;
+    return prompt.isPremium;
   }
 
   // Get popular prompts

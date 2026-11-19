@@ -1,0 +1,27 @@
+name: trend_scout
+description: >
+  Developer robot for SpookyAI: collects seasonal visual-trend signals from
+  public sources, clusters them into concepts, writes prompt candidates with
+  Claude (or templates offline), runs the app's content-safety gate, and
+  emits a JSON + Markdown report for human review.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0-158.0.dev
+
+dependencies:
+  args: ^2.5.0
+  http: ^1.2.2
+  # Re-uses the app's PromptModeration (pure Dart, no Flutter imports).
+  spooky_ai:
+    path: ../..
+
+dev_dependencies:
+  test: ^1.25.0
+  lints: ^6.0.0
+
+# Overrides only apply in the root package, so the app's Billing 8.0.0 pin
+# (see ../../pubspec.yaml) has to be repeated here for version solving.
+dependency_overrides:
+  in_app_purchase_android: 0.5.0

@@ -38,8 +38,6 @@ class PremiumService {
       }
 
       // Ensure monthly premium tokens are granted once every 30 days
-      await _ensureMonthlyTokens();
-
       return true;
     } catch (e) {
       return false;
@@ -126,9 +124,8 @@ class PremiumService {
   /// Get premium benefits description
   static List<String> getPremiumBenefits() {
     return [
-      '20 tokens per month',
+      '50 tokens per month',
       'Access to all prompts',
-      'Daily token spin wheel',
       'Higher token rewards',
       'Exclusive premium themes',
       'Priority AI processing',
@@ -146,9 +143,8 @@ class PremiumService {
       currency: 'USD',
       duration: Duration(days: 30),
       features: [
-        '20 tokens per month',
+        '50 tokens per month',
         'Access to all prompts',
-        'Daily token spin wheel',
         'Higher token rewards',
         'Exclusive premium themes',
         'Priority AI processing',
@@ -183,8 +179,8 @@ class PremiumService {
       endDate: DateTime.now().add(const Duration(days: 30)),
     );
 
-    // Grant monthly tokens on activation
-    await _grantMonthlyTokens();
+    // Tokens are granted per billing period from the RevenueCat entitlement
+    // (InAppPurchaseService._syncPremium), so nothing is added here.
   }
 
   /// Testing: Simulate a monthly renewal token grant (does not change dates)
@@ -220,17 +216,6 @@ class PremiumService {
       await TokenService.markMonthlyTokensClaimed();
     } catch (e) {
       // Handle error silently
-    }
-  }
-
-  static Future<void> _ensureMonthlyTokens() async {
-    try {
-      final canClaim = await TokenService.canClaimMonthlyTokens();
-      if (canClaim) {
-        await _grantMonthlyTokens();
-      }
-    } catch (e) {
-      // no-op
     }
   }
 }

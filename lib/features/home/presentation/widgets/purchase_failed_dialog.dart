@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class PurchaseFailedDialog extends StatelessWidget {
   const PurchaseFailedDialog({super.key, required this.reason});
@@ -16,7 +17,7 @@ class PurchaseFailedDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF1D162B),
+      backgroundColor: SeasonPalette.inputFill,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -45,10 +46,10 @@ class PurchaseFailedDialog extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Title
-            const Text(
+            Text(
               'Purchase Failed',
               style: TextStyle(
-                color: Colors.white,
+                color: SeasonPalette.text,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -59,8 +60,8 @@ class PurchaseFailedDialog extends StatelessWidget {
             // Reason
             Text(
               reason,
-              style: const TextStyle(
-                color: Color(0xFF8C7BA6),
+              style: TextStyle(
+                color: SeasonPalette.mutedText,
                 fontSize: 16,
                 height: 1.5,
               ),
@@ -75,7 +76,7 @@ class PurchaseFailedDialog extends StatelessWidget {
               child: FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6A00),
+                  backgroundColor: SeasonPalette.accent,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),

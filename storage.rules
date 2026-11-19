@@ -1,0 +1,15 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Trend preview images, uploaded by hand in the Firebase console (or with
+    // tool/seed_trends.cjs). Anyone can view them; the app never writes.
+    match /trends/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
