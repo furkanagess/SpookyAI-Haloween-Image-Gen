@@ -3,6 +3,12 @@
 Context is expensive here: every tool call re-reads the whole conversation.
 Keep it small.
 
+## Start here
+Before exploring the code, read `app_preview/README.md`: a task → file map
+(screens, generation, monetization, seasons, backend). Open only the files it
+points to. If you add a feature or move a file, add one line to the matching
+`app_preview/*.md` table.
+
 ## Working rules
 - Read only the lines you need (`sed -n 'a,bp'`, `grep -n`); never `cat` whole large files.
 - Write edits as small patches. Do not paste large generated blocks inline when a file edit will do.

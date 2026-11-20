@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="tr" data-season="halloween" data-device="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SpookyAI – Her Sezon İçin Yapay Zekâ Fotoğraf ve Sanat Uygulaması</title>
+<meta name="description" content="Selfie’ni vampire, buz kraliçesine ya da viral bir trende dönüştür. Yazıdan görsel üret, fotoğraflarını videoya çevir. iPhone ve Android’de ücretsiz.">
+<link rel="canonical" href="https://spookyai-app.web.app/tr/">
+<link rel="alternate" hreflang="en" href="https://spookyai-app.web.app/">
+<link rel="alternate" hreflang="tr" href="https://spookyai-app.web.app/tr/">
+<link rel="alternate" hreflang="x-default" href="https://spookyai-app.web.app/">
+<meta name="theme-color" content="#0f0b1a">
+<meta name="apple-itunes-app" content="app-id=6753217831">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SpookyAI">
+<meta property="og:title" content="SpookyAI – Her Sezon İçin Yapay Zekâ Fotoğraf ve Sanat Uygulaması">
+<meta property="og:description" content="Selfie’ni vampire, buz kraliçesine ya da viral bir trende dönüştür. Yazıdan görsel üret, fotoğraflarını videoya çevir. iPhone ve Android’de ücretsiz.">
+<meta property="og:url" content="https://spookyai-app.web.app/tr/">
+<meta property="og:image" content="https://spookyai-app.web.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SpookyAI – Her Sezon İçin Yapay Zekâ Fotoğraf ve Sanat Uygulaması">
+<meta name="twitter:description" content="Selfie’ni vampire, buz kraliçesine ya da viral bir trende dönüştür. Yazıdan görsel üret, fotoğraflarını videoya çevir. iPhone ve Android’de ücretsiz.">
+<meta name="twitter:image" content="https://spookyai-app.web.app/og-image.jpg">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preload" as="image" href="../media/icon.webp">
+<link rel="stylesheet" href="../styles.css?v=9e4a5afc">
+<script>/* set device + season before paint to avoid flicker */
+(function(d){var u=navigator.userAgent,ios=/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);
+d.dataset.device=ios?'ios':/Android/i.test(u)?'android':'desktop';
+var s;try{s=localStorage.getItem('season')}catch(e){}var mo=new Date().getMonth();
+d.dataset.season=s||(mo>=10||mo===0?'christmas':'halloween');})(document.documentElement);</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"MobileApplication","name":"SpookyAI","operatingSystem":"iOS, Android","applicationCategory":"PhotographyApplication","description":"Selfie’ni vampire, buz kraliçesine ya da viral bir trende dönüştür. Yazıdan görsel üret, fotoğraflarını videoya çevir. iPhone ve Android’de ücretsiz.","image":"https://spookyai-app.web.app/og-image.jpg","url":"https://spookyai-app.web.app/tr/","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"sameAs":["https://apps.apple.com/app/id6753217831","https://play.google.com/store/apps/details?id=com.furkanages.spookyai"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"SpookyAI ücretsiz mi?","acceptedAnswer":{"@type":"Answer","text":"Uygulamayı indirmek ücretsiz; yeni kurulumlar denemek için başlangıç jetonu alır. Her üretim jeton kullanır, uygulama içinden daha fazlasını alabilirsin."}},{"@type":"Question","name":"Fotoğraflarıma ne oluyor?","acceptedAnswer":{"@type":"Answer","text":"Fotoğraflar yalnızca istediğin sonucu üretmek için yapay zekâ sağlayıcımıza güvenli şekilde gönderilir. Sonuçların cihazında saklanır. Ayrıntılar gizlilik politikasında."}},{"@type":"Question","name":"Hangi cihazlarda çalışıyor?","acceptedAnswer":{"@type":"Answer","text":"App Store’dan iPhone ve iPad, Google Play’den Android telefonlar."}},{"@type":"Question","name":"Fikir ya da prompt yazmam gerekiyor mu?","acceptedAnswer":{"@type":"Answer","text":"Hayır. Hazır bir stil ya da trend seç ve dokun. İstersen kendi fikrini de yazabilirsin."}}]}</script>
+</head>
+<body>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="glow" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="brand" href="../" aria-label="SpookyAI">
+    <img class="brand-icon" src="../media/icon.webp" alt="" width="36" height="36"><span>SpookyAI</span>
+  </a>
+  <nav class="nav-links">
+    <a href="#gallery">Galeri</a><a href="#faq">SSS</a>
+  </nav>
+  <div class="nav-right">
+    <a class="lang" href="../" hreflang="en" lang="en" data-lang="en">EN</a>
+    <a class="btn-mini" href="#get">Uygulamayı indir</a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="hero-copy">
+    <div class="app-icon" aria-hidden="true">
+      <img class="icon-h" src="../media/icon.webp" alt="" width="128" height="128">
+      <img class="icon-c" src="../media/icon_christmas.webp" alt="" width="128" height="128">
+    </div>
+    <p class="kicker">Yapay zekâ fotoğraf ve sanat</p>
+    <h1><span class="line">Selfie’n,</span> <span class="line grad">her sezonda.</span></h1>
+    <p class="lead">Tek fotoğraf; vampir, kış kraliyeti ya da bu haftanın viral trendi olur. Bir fikir yaz, görsel gelsin. Tek dokunuşla hareketlensin.</p>
+    <div class="stores" data-where="hero">
+  <a class="store store-ios" href="https://apps.apple.com/app/id6753217831" rel="noopener" data-store="ios"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.77c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.65zM14.1 6.02c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.05-.52 2.68-1.28z"/></svg><span><small>Şuradan indir</small><b>App Store</b></span></a>
+  <a class="store store-android" href="https://play.google.com/store/apps/details?id=com.furkanages.spookyai" rel="noopener" data-store="android"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00d7fe" d="M3.6 2.2 13.3 12l-9.7 9.8c-.4-.2-.6-.6-.6-1.1V3.3c0-.5.2-.9.6-1.1z"/><path fill="#ffce00" d="m16.6 15.3-3.3-3.3 3.3-3.3 3.8 2.2c1.1.6 1.1 1.6 0 2.2l-3.8 2.2z"/><path fill="#ff3a44" d="M16.6 15.3 13.3 12l-9.7 9.8c.4.4 1 .4 1.6.1l11.4-6.6z"/><path fill="#00f076" d="M16.6 8.7 5.2 2.1c-.6-.4-1.2-.3-1.6.1l9.7 9.8 3.3-3.3z"/></svg><span><small>Şuradan edin</small><b>Google Play</b></span></a>
+</div>
+    <p class="fine">iPhone, iPad ve Android’de ücretsiz</p>
+    <div class="season-toggle" role="group" aria-label="Sezon">
+      <button type="button" data-season-btn="halloween">🎃 Cadılar Bayramı</button>
+      <button type="button" data-season-btn="christmas">❄️ Yılbaşı</button>
+    </div>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <figure class="hcard hcard-1" data-set="halloween"><img src="../media/halloween/pumpkin_king.webp" alt="" width="420" height="420" loading="lazy" decoding="async" fetchpriority="high" loading="eager"></figure><figure class="hcard hcard-2" data-set="halloween"><img src="../media/halloween/enchantedd_witch.webp" alt="" width="420" height="420" loading="lazy" decoding="async" fetchpriority="high" loading="eager"></figure><figure class="hcard hcard-3" data-set="halloween"><img src="../media/halloween/spectral_ghost.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure><figure class="hcard hcard-4" data-set="halloween"><img src="../media/halloween/raven_queen.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure><figure class="hcard hcard-5" data-set="halloween"><img src="../media/halloween/haunted_carnival.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure>
+    <figure class="hcard hcard-1" data-set="christmas"><img src="../media/christmas/ice_queen.webp" alt="" width="420" height="420" loading="lazy" decoding="async" fetchpriority="high" loading="eager"></figure><figure class="hcard hcard-2" data-set="christmas"><img src="../media/christmas/jolly_santa.webp" alt="" width="420" height="420" loading="lazy" decoding="async" fetchpriority="high" loading="eager"></figure><figure class="hcard hcard-3" data-set="christmas"><img src="../media/christmas/frost_dragon.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure><figure class="hcard hcard-4" data-set="christmas"><img src="../media/christmas/reindeer.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure><figure class="hcard hcard-5" data-set="christmas"><img src="../media/christmas/sleigh_ride.webp" alt="" width="420" height="420" loading="lazy" decoding="async"></figure>
+  </div>
+  <a class="scroll-cue" href="#compare">Keşfetmek için kaydır<span></span></a>
+</section>
+
+<div class="chips" aria-hidden="true"><div class="chips-track"><span>Selfie’den sanata</span><span>Yazıdan görsel</span><span>Fotoğraftan video</span><span>Viral trendler</span><span>Cadılar Bayramı</span><span>Yılbaşı</span><span>Her sezon yeni stiller</span><span>Tek dokunuşla stil</span><span>Selfie’den sanata</span><span>Yazıdan görsel</span><span>Fotoğraftan video</span><span>Viral trendler</span><span>Cadılar Bayramı</span><span>Yılbaşı</span><span>Her sezon yeni stiller</span><span>Tek dokunuşla stil</span></div></div>
+
+<section id="compare" class="section split reveal">
+  <div class="copy">
+    <p class="kicker">Önce / sonra</p>
+    <h2>Çizgiyi kaydır. Öteki seninle tanış.</h2>
+    <p class="lead">Solda gerçek bir selfie, sağda gerçek SpookyAI sonuçları. Aynı yüz, yeni bir dünya.</p>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-after="../media/compare/vampire.webp">🧛 Vampir Asilzade</button>
+      <button role="tab" aria-selected="false" data-after="../media/compare/winter.webp">👑 Kış Kraliyeti</button>
+    </div>
+  </div>
+  <div class="ba" style="--pos:50%">
+    <img class="ba-after" src="../media/compare/vampire.webp" alt="Vampir Asilzade" width="600" height="750" loading="lazy">
+    <div class="ba-before"><img src="../media/compare/selfie.webp" alt="Senin selfie’n" width="600" height="750" loading="lazy"></div>
+    <span class="ba-label l">Senin selfie’n</span><span class="ba-label r">SpookyAI</span>
+    <div class="ba-handle" aria-hidden="true"><span></span></div>
+    <input class="ba-range" type="range" min="0" max="100" value="50" aria-label="Önce / sonra">
+  </div>
+</section>
+
+<section class="section split reverse reveal">
+  <div class="copy">
+    <p class="kicker">Fotoğraftan video</p>
+    <h2>Nefes alan kareler.</h2>
+    <p class="lead">Bir fotoğraf seç; SpookyAI onu paylaşmaya hazır, kısa ve canlı bir klibe dönüştürsün.</p>
+  </div>
+  <div class="vid-pair">
+    <div class="vid-card">
+      <img src="../media/video/blackcat.webp" alt="Fotoğraf" width="560" height="560" loading="lazy">
+      <video muted loop playsinline preload="none" poster="../media/video/blackcat.webp" data-lazy-video>
+        <source data-src="../media/video/blackcat.webm" type="video/webm"><source data-src="../media/video/blackcat.mp4" type="video/mp4">
+      </video>
+      <span class="pill"><i>Fotoğraf</i> → <b>Video</b></span>
+    </div><div class="vid-card">
+      <img src="../media/video/telephone.webp" alt="Fotoğraf" width="560" height="560" loading="lazy">
+      <video muted loop playsinline preload="none" poster="../media/video/telephone.webp" data-lazy-video>
+        <source data-src="../media/video/telephone.webm" type="video/webm"><source data-src="../media/video/telephone.mp4" type="video/mp4">
+      </video>
+      <span class="pill"><i>Fotoğraf</i> → <b>Video</b></span>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal">
+  <div class="center">
+    <p class="kicker">Şu an trend</p>
+    <h2>Tek selfie. Bütün trendler.</h2>
+    <p class="lead">Aksiyon figürü kutusu, kar küresi, 90’lar flaş filmi: herkesin paylaştığı görünümler tek dokunuşla senin fotoğrafında.</p>
+  </div>
+  <div class="trends">
+    <figure class="trend"><img src="../media/trends/film_flash.webp" alt="90s Film Flash" width="560" height="560" loading="lazy" decoding="async"><figcaption>90s Film Flash</figcaption></figure><figure class="trend"><img src="../media/trends/collector.webp" alt="Action Figure Box" width="560" height="560" loading="lazy" decoding="async"><figcaption>Action Figure Box</figcaption></figure><figure class="trend"><img src="../media/trends/snow_globe.webp" alt="Inside a Snow Globe" width="560" height="560" loading="lazy" decoding="async"><figcaption>Inside a Snow Globe</figcaption></figure><figure class="trend"><img src="../media/trends/chibi.webp" alt="Chibi Sticker" width="560" height="560" loading="lazy" decoding="async"><figcaption>Chibi Sticker</figcaption></figure><figure class="trend"><img src="../media/trends/mini_me.webp" alt="Desk Mini-Me" width="560" height="560" loading="lazy" decoding="async"><figcaption>Desk Mini-Me</figcaption></figure><figure class="trend"><img src="../media/trends/pajama.webp" alt="Holiday Pajamas" width="560" height="560" loading="lazy" decoding="async"><figcaption>Holiday Pajamas</figcaption></figure><figure class="trend"><img src="../media/trends/red_hood.webp" alt="Red Hood" width="560" height="560" loading="lazy" decoding="async"><figcaption>Red Hood</figcaption></figure>
+  </div>
+</section>
+
+<section id="gallery" class="section gallery reveal">
+  <div class="center">
+    <p class="kicker">SpookyAI ile üretildi</p>
+    <h2>Her sezon yeni bir dünya.</h2>
+    <p class="lead">Ekimde ürpertici, aralıkta sıcacık. Stiller takvimle birlikte değişir.</p>
+  </div>
+  <div class="marquee-row" data-set="halloween"><div class="marquee-track"><figure class="tile"><img src="../media/halloween/enchantedd_witch.webp" alt="Enchanted Witch" width="420" height="420" loading="lazy" decoding="async"><figcaption>Enchanted Witch</figcaption></figure><figure class="tile"><img src="../media/halloween/pumpkin_king.webp" alt="Pumpkin King" width="420" height="420" loading="lazy" decoding="async"><figcaption>Pumpkin King</figcaption></figure><figure class="tile"><img src="../media/halloween/haunted_carnival.webp" alt="Haunted Carnival" width="420" height="420" loading="lazy" decoding="async"><figcaption>Haunted Carnival</figcaption></figure><figure class="tile"><img src="../media/halloween/spectral_ghost.webp" alt="Spectral Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Spectral Ghost</figcaption></figure><figure class="tile"><img src="../media/halloween/raven_queen.webp" alt="Raven Queen" width="420" height="420" loading="lazy" decoding="async"><figcaption>Raven Queen</figcaption></figure><figure class="tile"><img src="../media/halloween/werewolf.webp" alt="Werewolf" width="420" height="420" loading="lazy" decoding="async"><figcaption>Werewolf</figcaption></figure><figure class="tile"><img src="../media/halloween/gothic_ball.webp" alt="Gothic Ball" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gothic Ball</figcaption></figure><figure class="tile"><img src="../media/halloween/fortune_teller.webp" alt="Fortune Teller" width="420" height="420" loading="lazy" decoding="async"><figcaption>Fortune Teller</figcaption></figure><figure class="tile"><img src="../media/halloween/ghost_bride.webp" alt="Ghost Bride" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ghost Bride</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/enchantedd_witch.webp" alt="Enchanted Witch" width="420" height="420" loading="lazy" decoding="async"><figcaption>Enchanted Witch</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/pumpkin_king.webp" alt="Pumpkin King" width="420" height="420" loading="lazy" decoding="async"><figcaption>Pumpkin King</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/haunted_carnival.webp" alt="Haunted Carnival" width="420" height="420" loading="lazy" decoding="async"><figcaption>Haunted Carnival</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/spectral_ghost.webp" alt="Spectral Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Spectral Ghost</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/raven_queen.webp" alt="Raven Queen" width="420" height="420" loading="lazy" decoding="async"><figcaption>Raven Queen</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/werewolf.webp" alt="Werewolf" width="420" height="420" loading="lazy" decoding="async"><figcaption>Werewolf</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/gothic_ball.webp" alt="Gothic Ball" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gothic Ball</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/fortune_teller.webp" alt="Fortune Teller" width="420" height="420" loading="lazy" decoding="async"><figcaption>Fortune Teller</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/ghost_bride.webp" alt="Ghost Bride" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ghost Bride</figcaption></figure></div></div>
+  <div class="marquee-row" data-set="christmas"><div class="marquee-track"><figure class="tile"><img src="../media/christmas/ice_queen.webp" alt="Ice Queen" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ice Queen</figcaption></figure><figure class="tile"><img src="../media/christmas/jolly_santa.webp" alt="Jolly Santa" width="420" height="420" loading="lazy" decoding="async"><figcaption>Jolly Santa</figcaption></figure><figure class="tile"><img src="../media/christmas/frost_dragon.webp" alt="Frost Dragon" width="420" height="420" loading="lazy" decoding="async"><figcaption>Frost Dragon</figcaption></figure><figure class="tile"><img src="../media/christmas/sleigh_ride.webp" alt="Sleigh Ride" width="420" height="420" loading="lazy" decoding="async"><figcaption>Sleigh Ride</figcaption></figure><figure class="tile"><img src="../media/christmas/cabin_window.webp" alt="Cabin Window" width="420" height="420" loading="lazy" decoding="async"><figcaption>Cabin Window</figcaption></figure><figure class="tile"><img src="../media/christmas/nutcracker.webp" alt="Nutcracker" width="420" height="420" loading="lazy" decoding="async"><figcaption>Nutcracker</figcaption></figure><figure class="tile"><img src="../media/christmas/reindeer.webp" alt="Reindeer" width="420" height="420" loading="lazy" decoding="async"><figcaption>Reindeer</figcaption></figure><figure class="tile"><img src="../media/christmas/gingerbread_baker.webp" alt="Gingerbread Baker" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gingerbread Baker</figcaption></figure><figure class="tile"><img src="../media/christmas/skater.webp" alt="Ice Skater" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ice Skater</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/ice_queen.webp" alt="Ice Queen" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ice Queen</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/jolly_santa.webp" alt="Jolly Santa" width="420" height="420" loading="lazy" decoding="async"><figcaption>Jolly Santa</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/frost_dragon.webp" alt="Frost Dragon" width="420" height="420" loading="lazy" decoding="async"><figcaption>Frost Dragon</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/sleigh_ride.webp" alt="Sleigh Ride" width="420" height="420" loading="lazy" decoding="async"><figcaption>Sleigh Ride</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/cabin_window.webp" alt="Cabin Window" width="420" height="420" loading="lazy" decoding="async"><figcaption>Cabin Window</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/nutcracker.webp" alt="Nutcracker" width="420" height="420" loading="lazy" decoding="async"><figcaption>Nutcracker</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/reindeer.webp" alt="Reindeer" width="420" height="420" loading="lazy" decoding="async"><figcaption>Reindeer</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/gingerbread_baker.webp" alt="Gingerbread Baker" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gingerbread Baker</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/skater.webp" alt="Ice Skater" width="420" height="420" loading="lazy" decoding="async"><figcaption>Ice Skater</figcaption></figure></div></div>
+  <div class="marquee-row" data-set="halloween"><div class="marquee-track"><figure class="tile"><img src="../media/halloween/golden_pumpkin.webp" alt="Golden Pumpkin" width="420" height="420" loading="lazy" decoding="async"><figcaption>Golden Pumpkin</figcaption></figure><figure class="tile"><img src="../media/halloween/skeleton_musician.webp" alt="Skeleton Musician" width="420" height="420" loading="lazy" decoding="async"><figcaption>Skeleton Musician</figcaption></figure><figure class="tile"><img src="../media/halloween/mirror_ghost.webp" alt="Mirror Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Mirror Ghost</figcaption></figure><figure class="tile"><img src="../media/halloween/crimson_vampire.webp" alt="Crimson Vampire" width="420" height="420" loading="lazy" decoding="async"><figcaption>Crimson Vampire</figcaption></figure><figure class="tile"><img src="../media/halloween/moonlit_graveyard.webp" alt="Moonlit Graveyard" width="420" height="420" loading="lazy" decoding="async"><figcaption>Moonlit Graveyard</figcaption></figure><figure class="tile"><img src="../media/halloween/apothercy_witch.webp" alt="Apothecary Witch" width="420" height="420" loading="lazy" decoding="async"><figcaption>Apothecary Witch</figcaption></figure><figure class="tile"><img src="../media/halloween/friendly_ghosty.webp" alt="Friendly Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Friendly Ghost</figcaption></figure><figure class="tile"><img src="../media/halloween/haunted_mansion_portrait.webp" alt="Haunted Portrait" width="420" height="420" loading="lazy" decoding="async"><figcaption>Haunted Portrait</figcaption></figure><figure class="tile"><img src="../media/halloween/jacko_lantern.webp" alt="Jack-o'-Lantern" width="420" height="420" loading="lazy" decoding="async"><figcaption>Jack-o'-Lantern</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/golden_pumpkin.webp" alt="Golden Pumpkin" width="420" height="420" loading="lazy" decoding="async"><figcaption>Golden Pumpkin</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/skeleton_musician.webp" alt="Skeleton Musician" width="420" height="420" loading="lazy" decoding="async"><figcaption>Skeleton Musician</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/mirror_ghost.webp" alt="Mirror Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Mirror Ghost</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/crimson_vampire.webp" alt="Crimson Vampire" width="420" height="420" loading="lazy" decoding="async"><figcaption>Crimson Vampire</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/moonlit_graveyard.webp" alt="Moonlit Graveyard" width="420" height="420" loading="lazy" decoding="async"><figcaption>Moonlit Graveyard</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/apothercy_witch.webp" alt="Apothecary Witch" width="420" height="420" loading="lazy" decoding="async"><figcaption>Apothecary Witch</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/friendly_ghosty.webp" alt="Friendly Ghost" width="420" height="420" loading="lazy" decoding="async"><figcaption>Friendly Ghost</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/haunted_mansion_portrait.webp" alt="Haunted Portrait" width="420" height="420" loading="lazy" decoding="async"><figcaption>Haunted Portrait</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/halloween/jacko_lantern.webp" alt="Jack-o'-Lantern" width="420" height="420" loading="lazy" decoding="async"><figcaption>Jack-o'-Lantern</figcaption></figure></div></div>
+  <div class="marquee-row" data-set="christmas"><div class="marquee-track"><figure class="tile"><img src="../media/christmas/santa_workshop.webp" alt="Santa's Workshop" width="420" height="420" loading="lazy" decoding="async"><figcaption>Santa's Workshop</figcaption></figure><figure class="tile"><img src="../media/christmas/winter_angel.webp" alt="Winter Angel" width="420" height="420" loading="lazy" decoding="async"><figcaption>Winter Angel</figcaption></figure><figure class="tile"><img src="../media/christmas/carolers.webp" alt="Carolers" width="420" height="420" loading="lazy" decoding="async"><figcaption>Carolers</figcaption></figure><figure class="tile"><img src="../media/christmas/gingerbread_village.webp" alt="Gingerbread Village" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gingerbread Village</figcaption></figure><figure class="tile"><img src="../media/christmas/christmas_morning.webp" alt="Christmas Morning" width="420" height="420" loading="lazy" decoding="async"><figcaption>Christmas Morning</figcaption></figure><figure class="tile"><img src="../media/christmas/winter_market.webp" alt="Winter Market" width="420" height="420" loading="lazy" decoding="async"><figcaption>Winter Market</figcaption></figure><figure class="tile"><img src="../media/christmas/lantern_snowman.webp" alt="Lantern Snowman" width="420" height="420" loading="lazy" decoding="async"><figcaption>Lantern Snowman</figcaption></figure><figure class="tile"><img src="../media/christmas/fireside_cat.webp" alt="Fireside Cat" width="420" height="420" loading="lazy" decoding="async"><figcaption>Fireside Cat</figcaption></figure><figure class="tile"><img src="../media/christmas/vintage_christmas_card.webp" alt="Vintage Card" width="420" height="420" loading="lazy" decoding="async"><figcaption>Vintage Card</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/santa_workshop.webp" alt="Santa's Workshop" width="420" height="420" loading="lazy" decoding="async"><figcaption>Santa's Workshop</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/winter_angel.webp" alt="Winter Angel" width="420" height="420" loading="lazy" decoding="async"><figcaption>Winter Angel</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/carolers.webp" alt="Carolers" width="420" height="420" loading="lazy" decoding="async"><figcaption>Carolers</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/gingerbread_village.webp" alt="Gingerbread Village" width="420" height="420" loading="lazy" decoding="async"><figcaption>Gingerbread Village</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/christmas_morning.webp" alt="Christmas Morning" width="420" height="420" loading="lazy" decoding="async"><figcaption>Christmas Morning</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/winter_market.webp" alt="Winter Market" width="420" height="420" loading="lazy" decoding="async"><figcaption>Winter Market</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/lantern_snowman.webp" alt="Lantern Snowman" width="420" height="420" loading="lazy" decoding="async"><figcaption>Lantern Snowman</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/fireside_cat.webp" alt="Fireside Cat" width="420" height="420" loading="lazy" decoding="async"><figcaption>Fireside Cat</figcaption></figure><figure class="tile" aria-hidden="true"><img src="../media/christmas/vintage_christmas_card.webp" alt="Vintage Card" width="420" height="420" loading="lazy" decoding="async"><figcaption>Vintage Card</figcaption></figure></div></div>
+</section>
+
+<section class="section reveal">
+  <div class="center"><p class="kicker">Uygulamadan</p><h2>Uygulamayı yakından gör.</h2></div>
+  <div class="screens">
+    <figure class="screen"><img src="../media/screens/spookyai_ios_1.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure><figure class="screen"><img src="../media/screens/spookyai_ios_4.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure><figure class="screen"><img src="../media/screens/spookyai_ios_trends.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure><figure class="screen"><img src="../media/screens/spookyai_ios_5.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure><figure class="screen"><img src="../media/screens/spookyai_ios_2.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure><figure class="screen"><img src="../media/screens/spookyai_ios_3.webp" alt="SpookyAI" width="420" height="908" loading="lazy" decoding="async"></figure>
+  </div>
+</section>
+
+<section id="faq" class="section narrow reveal">
+  <div class="center"><p class="kicker">SSS</p><h2>Merak edilenler.</h2></div>
+  <details class="qa"><summary>SpookyAI ücretsiz mi?</summary><p>Uygulamayı indirmek ücretsiz; yeni kurulumlar denemek için başlangıç jetonu alır. Her üretim jeton kullanır, uygulama içinden daha fazlasını alabilirsin.</p></details><details class="qa"><summary>Fotoğraflarıma ne oluyor?</summary><p>Fotoğraflar yalnızca istediğin sonucu üretmek için yapay zekâ sağlayıcımıza güvenli şekilde gönderilir. Sonuçların cihazında saklanır. Ayrıntılar gizlilik politikasında.</p></details><details class="qa"><summary>Hangi cihazlarda çalışıyor?</summary><p>App Store’dan iPhone ve iPad, Google Play’den Android telefonlar.</p></details><details class="qa"><summary>Fikir ya da prompt yazmam gerekiyor mu?</summary><p>Hayır. Hazır bir stil ya da trend seç ve dokun. İstersen kendi fikrini de yazabilirsin.</p></details>
+</section>
+
+<section id="get" class="section cta reveal">
+  <div class="app-icon small" aria-hidden="true">
+    <img class="icon-h" src="../media/icon.webp" alt="" width="96" height="96">
+    <img class="icon-c" src="../media/icon_christmas.webp" alt="" width="96" height="96">
+  </div>
+  <h2><span>Yeni görünümün</span> <span class="grad">bir dokunuş uzağında.</span></h2>
+  <p class="lead">Ücretsiz indir, ilk görselini saniyeler içinde üret.</p>
+  <div class="cta-row">
+    <div class="stores" data-where="cta">
+  <a class="store store-ios" href="https://apps.apple.com/app/id6753217831" rel="noopener" data-store="ios"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 12.77c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.96.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.42-3.65zM14.1 6.02c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.02.08 2.05-.52 2.68-1.28z"/></svg><span><small>Şuradan indir</small><b>App Store</b></span></a>
+  <a class="store store-android" href="https://play.google.com/store/apps/details?id=com.furkanages.spookyai" rel="noopener" data-store="android"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00d7fe" d="M3.6 2.2 13.3 12l-9.7 9.8c-.4-.2-.6-.6-.6-1.1V3.3c0-.5.2-.9.6-1.1z"/><path fill="#ffce00" d="m16.6 15.3-3.3-3.3 3.3-3.3 3.8 2.2c1.1.6 1.1 1.6 0 2.2l-3.8 2.2z"/><path fill="#ff3a44" d="M16.6 15.3 13.3 12l-9.7 9.8c.4.4 1 .4 1.6.1l11.4-6.6z"/><path fill="#00f076" d="M16.6 8.7 5.2 2.1c-.6-.4-1.2-.3-1.6.1l9.7 9.8 3.3-3.3z"/></svg><span><small>Şuradan edin</small><b>Google Play</b></span></a>
+</div>
+    <div class="qr"><img src="../qr.svg" alt="QR" width="112" height="112" loading="lazy"><div><b>İndirmek için tara</b><small>Telefonun doğru mağazayı açar.</small></div></div>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="brand"><img class="brand-icon" src="../media/icon.webp" alt="" width="28" height="28"><span>SpookyAI</span></div>
+  <nav><a href="../privacy/">Gizlilik Politikası</a><a href="../terms/">Kullanım Şartları</a><a href="mailto:spookyaihelp@gmail.com">İletişim</a>
+  <a href="../" hreflang="en" data-lang="en">English</a></nav>
+  <small>© 2026 SpookyAI. Tüm hakları saklıdır.</small>
+</footer>
+<script src="../app.js?v=9e4a5afc" defer></script>
+</body>
+</html>

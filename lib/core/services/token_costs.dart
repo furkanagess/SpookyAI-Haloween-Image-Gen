@@ -7,7 +7,7 @@ class TokenCosts {
 
   static const double textToImage = 1.0;
   static const double imageToImage = 2.0;
-  static const double imageToVideo = 4.0;
+  static const double imageToVideo = 10.0; // fal ~$0.60 per video
 
   /// Whole-number label for UI copy: "1 token", "3 tokens".
   static String label(double cost) {

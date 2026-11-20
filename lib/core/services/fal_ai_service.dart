@@ -27,13 +27,13 @@ class FalAiService {
   static const String i2iQuality = imageQuality;
   static const String i2iImageSize = imageSize;
 
-  // Image to Video: MiniMax H3 Max Turbo on fal. Billed per second of video.
-  static const String _i2vModel = 'minimax/h3-max-turbo/image-to-video';
+  // Image to Video: MiniMax H3 Max on fal (~$0.60 per 5 s 1080P clip).
+  static const String _i2vModel = 'minimax/h3-max/image-to-video';
   static String get _i2vUrl => '${EnvironmentConfig.falQueueBase}/$_i2vModel';
 
   /// Fixed clip length and resolution keep the cost per video predictable.
   static const int videoSeconds = 5;
-  static const String videoResolution = '768P';
+  static const String videoResolution = '1080P';
 
   /// HTTP client for text-to-image; replaceable in tests.
   static http.Client httpClient = http.Client();
@@ -197,24 +197,28 @@ class FalAiService {
     'image_url': imageDataUri,
     'duration': videoSeconds,
     'resolution': videoResolution,
-    // Send our short prompt as is; the model must not rewrite it.
-    'prompt_expansion_mode': 'disabled',
+    // fal expands the prompt for quality; our no-speech line goes along.
+    'prompt_expansion_mode': 'quality',
     'enable_safety_checker': true,
     if (seed != null) 'seed': seed,
   };
 
   /// Motion prompt sent to the video model: the user's motion (or a gentle
-  /// default) plus one short face sentence. Pure and testable.
+  /// default) plus one short face sentence. The user's text is framed as a
+  /// scene direction and speech is ruled out, so the model acts it out
+  /// instead of reading it aloud. Pure and testable.
   @visibleForTesting
   static String buildVideoPrompt(String? motionPrompt) {
     final extra = (motionPrompt ?? '').trim().replaceAll(
       RegExp(r'[,.;:!\s]+$'),
       '',
     );
-    return extra.isEmpty
-        ? 'Subtle, natural motion. Keep the face natural and unchanged.'
-        : '$extra. Keep the face natural and unchanged.';
+    final action = extra.isEmpty ? 'Subtle, natural motion' : 'Action: $extra';
+    return '$action. Keep the same face, natural and true to the photo, and keep the scene, lighting and setting from the image. $_noSpeech';
   }
+
+  static const String _noSpeech =
+      'No speech, voiceover or narration; ambient sound only.';
 
   /// Animates a generated image. Returns the CDN URL of the mp4.
   static Future<String> generateVideo({
@@ -273,8 +277,12 @@ class FalAiService {
   }) async {
     final kind = url.contains('video') ? 'video' : 'image';
     try {
-      final json = await _runQueueRaw(url, body,
-          isCancelled: isCancelled, timeout: timeout);
+      final json = await _runQueueRaw(
+        url,
+        body,
+        isCancelled: isCancelled,
+        timeout: timeout,
+      );
       unawaited(AnalyticsService.generation(kind: kind, success: true));
       return json;
     } catch (e, st) {

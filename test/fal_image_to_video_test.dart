@@ -11,10 +11,10 @@ import 'package:spooky_ai/core/services/token_costs.dart';
 void main() {
   setUpAll(() => dotenv.testLoad(fileInput: 'FAL_AI_API_KEY=test-key'));
 
-  test('prices: 1 / 2 / 4 tokens', () {
+  test('prices: 1 / 2 / 10 tokens', () {
     expect(TokenCosts.textToImage, 1.0);
     expect(TokenCosts.imageToImage, 2.0);
-    expect(TokenCosts.imageToVideo, 4.0);
+    expect(TokenCosts.imageToVideo, 10.0);
   });
 
   test('video body is fixed length/resolution with safety on', () {
@@ -34,7 +34,7 @@ void main() {
     addTearDown(() => FalAiService.httpClient = old);
     FalAiService.httpClient = MockClient((req) async {
       if (req.method == 'POST') {
-        expect(req.url.path, contains('minimax/h3-max-turbo/image-to-video'));
+        expect(req.url.path, contains('minimax/h3-max/image-to-video'));
         return http.Response(
           jsonEncode({
             'request_id': 'abcd1234-0000',
@@ -60,11 +60,14 @@ void main() {
     expect(url, 'https://cdn/v.mp4');
   });
 
-  test('video prompt is short and sent without server-side rewriting', () {
+  test('video prompt is short and uses quality prompt expansion', () {
     expect(
       FalAiService.buildVideoPrompt('she turns and smiles.'),
-      'she turns and smiles. Keep the face natural and unchanged.',
+      'Action: she turns and smiles. Keep the same face, natural and true to the photo, '
+      'and keep the scene, lighting and setting from the image. '
+      'No speech, voiceover or narration; ambient sound only.',
     );
+    expect(FalAiService.buildVideoPrompt(''), contains('No speech'));
     expect(
       FalAiService.buildVideoPrompt(''),
       startsWith('Subtle, natural motion.'),
@@ -73,6 +76,6 @@ void main() {
       imageDataUri: 'x',
       prompt: 'p',
     );
-    expect(b['prompt_expansion_mode'], 'disabled');
+    expect(b['prompt_expansion_mode'], 'quality');
   });
 }

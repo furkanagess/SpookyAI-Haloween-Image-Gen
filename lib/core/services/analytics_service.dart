@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Funnel analytics and crash reporting. Every call is a no-op if Firebase
@@ -15,12 +14,21 @@ class AnalyticsService {
 
   static bool _ready = false;
 
+  /// `--dart-define=ANALYTICS_DEBUG=true` turns collection on in debug builds
+  /// so events and crashes can be checked from a simulator.
+  static const _forceInDebug = bool.fromEnvironment('ANALYTICS_DEBUG');
+
+  /// `--dart-define=ANALYTICS_SELF_TEST=true` sends one test event and one
+  /// non-fatal error at startup. `=crash` also forces a native crash after
+  /// 8 seconds (Crashlytics uploads it on the next launch). Debug only.
+  static const _selfTest = String.fromEnvironment('ANALYTICS_SELF_TEST');
+
   static Future<void> init() async {
     try {
+      final enabled = !kDebugMode || _forceInDebug;
       await FirebaseCrashlytics.instance
-          .setCrashlyticsCollectionEnabled(!kDebugMode);
-      await FirebaseAnalytics.instance
-          .setAnalyticsCollectionEnabled(!kDebugMode);
+          .setCrashlyticsCollectionEnabled(enabled);
+      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
 
       FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -29,18 +37,36 @@ class AnalyticsService {
         return true;
       };
       _ready = true;
+      if (kDebugMode && _selfTest.isNotEmpty) await _runSelfTest();
     } catch (e) {
       debugPrint('Analytics init failed: $e');
     }
   }
 
-  static FirebaseAnalyticsObserver? _observer;
+  static Future<void> _runSelfTest() async {
+    final stamp = DateTime.now().toIso8601String();
+    await log('analytics_self_test', {'at': stamp});
+    await FirebaseCrashlytics.instance.log('self-test breadcrumb $stamp');
+    await FirebaseCrashlytics.instance.recordError(
+      StateError('Crashlytics self-test (non-fatal) $stamp'),
+      StackTrace.current,
+      reason: 'analytics self-test',
+    );
+    debugPrint('ANALYTICS_SELF_TEST: event + non-fatal sent ($stamp)');
+    if (_selfTest == 'crash') {
+      Future.delayed(const Duration(seconds: 8), () {
+        debugPrint('ANALYTICS_SELF_TEST: forcing native crash');
+        FirebaseCrashlytics.instance.crash();
+      });
+    }
+  }
 
-  /// Screen-view tracking for MaterialApp.navigatorObservers.
-  static FirebaseAnalyticsObserver? get observer => _ready
-      ? _observer ??=
-          FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
-      : null;
+  /// Screen-view tracking for MaterialApp.navigatorObservers. Returns a new
+  /// observer each call: MaterialApp is rebuilt with a new key on season or
+  /// theme changes, and one observer must never sit on two Navigators.
+  static List<NavigatorObserver> navigatorObservers() => _ready
+      ? [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)]
+      : const [];
 
   static Future<void> log(String name, [Map<String, Object>? params]) async {
     if (!_ready) return;

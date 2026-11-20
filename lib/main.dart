@@ -101,10 +101,7 @@ class GhostfaceApp extends StatelessWidget {
                 key: ValueKey('${season.current.id}-$isDark'),
                 title: season.current.appTitle,
                 debugShowCheckedModeBanner: false,
-                navigatorObservers: [
-                  if (AnalyticsService.observer != null)
-                    AnalyticsService.observer!,
-                ],
+                navigatorObservers: AnalyticsService.navigatorObservers(),
                 theme: season.current.toThemeData(isDark: isDark),
                 builder: (context, child) => SeasonEffectsLayer(
                   enabled: season.effectsEnabled,
