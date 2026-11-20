@@ -1,623 +1,443 @@
+import '../../../../core/theme/seasons/season_palette.dart';
+import '../../../../core/theme/seasons/season_theme.dart';
 import '../models/prompt_category.dart';
+import 'christmas_prompts.dart';
 
 class PromptService {
-  static const List<PromptCategory> _promptCategories = [
-    // Text to Image Prompts
+  static const List<PromptCategory> _halloweenCategories = [
     PromptCategory(
-      id: 'text_to_image',
-      name: 'Text to Image',
-      icon: '🎨',
-      description: 'Generate Halloween scenes and characters from text descriptions',
+      id: "text_to_image",
+      name: "Text to Image",
+      icon: "🎨",
+      description: "Halloween characters and scenes from a short description",
       prompts: [
-        // Halloween Scenes
         PromptItem(
-          id: 'spooky_forest',
-          title: 'Spooky Forest',
+          id: "pumpkin_king",
+          title: "Pumpkin King",
           prompt:
-              'A dark, misty forest at night with twisted trees, glowing eyes in the shadows, and mysterious fog swirling between ancient oaks, cinematic horror lighting',
+              "A pumpkin-headed king on a throne of twisted roots, tattered crimson cape, crown of black iron thorns, carved face glowing from within, in a moonlit pumpkin patch full of glowing jack-o'-lanterns.",
           isPopular: true,
-          tags: ['forest', 'horror', 'atmosphere', 'scene'],
+          tagline: "A crown of thorns, a lantern for a scepter.",
+          description:
+              "A towering king with a glowing carved face rules from a throne of twisted roots. Autumn folklore in a crimson velvet cape.",
+          tags: ["pumpkin", "fantasy", "horror"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'haunted_house',
-          title: 'Haunted Mansion',
+          id: "moonlit_witch",
+          title: "Moonlit Witch",
           prompt:
-              'A grand Victorian mansion with broken windows, overgrown vines, lightning illuminating the facade, gothic architecture with eerie shadows',
+              "A witch with long silver hair and a pointed hat holding a glowing green potion, midnight-blue robes, a black cat at her feet, on a misty hilltop under a huge full moon.",
           isPopular: true,
-          tags: ['house', 'gothic', 'lightning', 'scene'],
+          tagline: "She brews by moonlight, the cat supervises.",
+          description:
+              "A silver-haired witch lifts a glowing green potion, midnight robes stitched with stars and a black cat at her feet.",
+          tags: ["witch", "moon", "fantasy"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'haunted_graveyard',
-          title: 'Haunted Graveyard',
+          id: "vampire_noble",
+          title: "Crimson Vampire",
           prompt:
-              'An ancient cemetery with crumbling tombstones, ghostly figures emerging from graves, skeletal hands reaching from the earth, ethereal blue mist',
+              "A pale aristocratic vampire in a high-collared black velvet coat raising a crystal goblet, faint fangs, in a candle-lit gothic castle hall with arched windows and red drapes.",
+          tagline: "Velvet, rings and centuries of charm.",
+          description:
+              "An aristocrat in a high-collared coat raises a crystal goblet. Pale, elegant and just a little dangerous.",
+          tags: ["vampire", "gothic", "nobility"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: "friendly_ghost",
+          title: "Friendly Ghost",
+          prompt:
+              "A cute ghost in a flowing white sheet with big round glowing eyes, floating and holding a tiny lantern, in a cozy old attic with wooden beams and a round window at night, warm lantern glow.",
           isPopular: true,
-          tags: ['graveyard', 'ghosts', 'skeletons', 'scene'],
+          tagline: "The least scary ghost in the house.",
+          description:
+              "A round-eyed ghost drifts along with a tiny lantern, trailing soft light. Storybook sweet, never frightening.",
+          tags: ["ghosts", "fantasy", "supernatural"],
+          ownsScene: true,
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'cursed_pumpkin_patch',
-          title: 'Cursed Pumpkin Patch',
+          id: "skeleton_musician",
+          title: "Skeleton Musician",
           prompt:
-              'A field of glowing jack-o-lanterns with sinister faces, each carved with different expressions of horror, mist swirling between them under a blood-red moon',
+              "A skeleton in a tattered tailcoat and top hat playing the violin with passion, on the wooden stage of a dusty vintage theater, red velvet curtains, a single warm spotlight.",
+          tagline: "A dapper skeleton, a violin, no regrets.",
+          description:
+              "Bones polished like ivory, a tattered tailcoat and a single candle flame floating over the strings, mid-dance.",
+          tags: ["skeletons", "horror", "vintage"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: "werewolf_howl",
+          title: "Werewolf Howl",
+          prompt:
+              "A werewolf howling with its head thrown back, torn shirt over thick fur, glowing amber eyes, on a rocky ridge above a dark pine forest under a bright full moon, thin mist.",
+          tagline: "One howl at the full moon.",
+          description:
+              "A powerful werewolf with its head thrown back, torn shirt and amber eyes, every strand of fur catching the moonlight.",
+          tags: ["horror", "supernatural", "moon"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.textToImage,
+        ),
+        PromptItem(
+          id: "black_cat_familiar",
+          title: "Black Cat Familiar",
+          prompt:
+              "A black cat with yellow eyes and a tiny crooked witch hat sitting on an old spellbook, a lit candle and dried herbs beside it, on a wooden desk in a witch's cottage, warm candlelight.",
           isPopular: true,
-          tags: ['pumpkin', 'cursed', 'moon', 'scene'],
+          tagline: "Small cat, big spellbook.",
+          description:
+              "A sleek black cat in a crooked witch hat sits on an antique spellbook, with a candle and dried herbs close by.",
+          tags: ["witch", "fantasy", "supernatural"],
+          ownsScene: true,
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'trick_or_treat_block_party',
-          title: 'Trick-or-Treat Block Party',
+          id: "jack_o_lantern_still_life",
+          title: "Jack-o'-Lantern Still Life",
           prompt:
-              'A lively Halloween neighborhood block party at dusk: rows of townhouses draped in fake cobwebs and paper bats, porches stacked with jack-o-lanterns carved in intricate patterns, strings of orange fairy lights zigzagging over the street. Children in elaborate costumes (witches with pointed hats, tiny vampires with capes, astronauts with reflective visors) dart between doorsteps, pumpkin pails swinging. Parents chat in small clusters holding steaming cups of cider. A fog machine wafts low-lying mist along the asphalt, reflective wet leaves glimmer in the glow. Warm porch light meets cool blue twilight; soft depth-of-field and cinematic grain, gentle lens flare from a streetlamp, cozy yet spooky atmosphere.',
-          tags: ['street', 'party', 'kids', 'pumpkins', 'neighborhood', 'scene'],
+              "Five hand-carved jack-o'-lanterns of different sizes and faces on a rustic wooden table, candles glowing inside, scattered autumn leaves and small gourds, warm light across the table.",
+          ownsScene: true,
+          tagline: "Five pumpkins, five moods.",
+          description:
+              "A candlelit table of hand-carved jack-o'-lanterns, scattered leaves and a lace cloth, glowing like an October evening.",
+          tags: ["pumpkin", "vintage"],
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'haunted_front_porch_row',
-          title: 'Haunted Front Porch Row',
+          id: "ghost_bride",
+          title: "Ghost Bride",
           prompt:
-              'A row of vintage wooden porches decorated for Halloween on a narrow residential street: creaking steps, crepe-paper streamers fluttering in the breeze, witch silhouettes taped to windows, black-cat cutouts perched on railings. Carved pumpkins of all sizes emit flickering candlelight; a bowl of candy corn sits on a small table next to a brass door knocker shaped like a skull. Paper lanterns dangle overhead, gently swaying. Fallen maple leaves gather on the steps, their reds and oranges glowing under a warm porch bulb, while the background fades into cool twilight blue. Framing emphasizes the repeating porches; subtle film grain and shallow depth of field for a nostalgic seasonal vibe.',
-          tags: ['porch', 'pumpkins', 'lanterns', 'leaves', 'nostalgic', 'scene'],
-          promptType: PromptType.textToImage,
-        ),
-        
-        // Fantasy Characters
-        PromptItem(
-          id: 'dragon_lair',
-          title: 'Dragon\'s Lair',
-          prompt:
-              'A massive dragon sleeping on a pile of golden treasures in a cave, glowing gems and magical artifacts scattered around, epic fantasy lighting',
-          isPopular: true,
-          tags: ['dragon', 'treasure', 'cave', 'fantasy'],
+              "A ghostly bride in a tattered lace gown and smoky veil holding wilted black roses, sorrowful expression, edges fading into mist, in an overgrown Victorian graveyard at night, stone angels in fog.",
+          tagline: "A wedding that never quite ended.",
+          description:
+              "A veiled bride drifts like smoke, holding black roses. Calm, sorrowful and slowly dissolving into mist.",
+          tags: ["ghosts", "gothic", "supernatural"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.textToImage,
         ),
         PromptItem(
-          id: 'magical_castle',
-          title: 'Floating Castle',
+          id: "raven_queen",
+          title: "Raven Queen",
           prompt:
-              'A magnificent castle floating in the clouds, waterfalls cascading from its edges, rainbow bridges connecting to other floating islands',
-          isPopular: true,
-          tags: ['castle', 'floating', 'clouds', 'fantasy'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'wizard_tower',
-          title: 'Wizard\'s Tower',
-          prompt:
-              'A tall stone tower with glowing windows, magical energy swirling around it, books and potions floating in the air',
-          tags: ['wizard', 'tower', 'magic', 'fantasy'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'enchanted_forest',
-          title: 'Enchanted Forest',
-          prompt:
-              'A mystical forest with glowing mushrooms, fairy lights, ancient trees with faces, magical creatures hidden in the shadows',
-          tags: ['forest', 'fairy', 'enchanted', 'fantasy'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'phoenix_rebirth',
-          title: 'Phoenix Rebirth',
-          prompt:
-              'A magnificent phoenix rising from flames, golden and crimson feathers glowing with inner fire, ash and embers swirling around, rebirth symbolism',
-          isPopular: true,
-          tags: ['phoenix', 'fire', 'rebirth', 'fantasy'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'unicorn_meadow',
-          title: 'Unicorn Meadow',
-          prompt:
-              'A magical meadow with a pure white unicorn, rainbow-colored flowers blooming everywhere, sparkling dewdrops, ethereal morning light',
-          tags: ['unicorn', 'meadow', 'rainbow', 'fantasy'],
-          promptType: PromptType.textToImage,
-        ),
-        
-        // Horror Characters
-        PromptItem(
-          id: 'zombie_apocalypse',
-          title: 'Zombie Apocalypse',
-          prompt:
-              'Post-apocalyptic cityscape with abandoned buildings, dark clouds, zombies in the shadows, dramatic lighting with orange sky',
-          tags: ['zombie', 'apocalypse', 'city', 'horror'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'witch_ritual',
-          title: 'Witch Ritual',
-          prompt:
-              'A mysterious witch performing a ritual in a candlelit room, floating objects, magical symbols in the air, dark mystical atmosphere',
-          tags: ['witch', 'ritual', 'magic', 'horror'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'ghost_portrait',
-          title: 'Ghost Portrait',
-          prompt:
-              'A translucent ghost figure with flowing ethereal clothing, glowing eyes, surrounded by floating orbs of light, dramatic dark background',
-          isPopular: true,
-          tags: ['ghost', 'portrait', 'ethereal', 'horror'],
-          promptType: PromptType.textToImage,
-        ),
-        
-        // Modern & Trend Scenes
-        PromptItem(
-          id: 'cyberpunk_neon_city',
-          title: 'Cyberpunk Neon City',
-          prompt:
-              'A futuristic cyberpunk cityscape at night with neon lights, holographic advertisements, flying vehicles, rain-soaked streets reflecting neon colors, cyberpunk aesthetic, Blade Runner style, cinematic lighting',
-          isPopular: true,
-          tags: ['cyberpunk', 'neon', 'city', 'futuristic', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'liminal_space_hallway',
-          title: 'Liminal Space Hallway',
-          prompt:
-              'An eerie liminal space hallway with endless corridors, flickering fluorescent lights, retro carpet patterns, unsettling empty atmosphere, dreamlike quality, nostalgic horror aesthetic, cinematic composition',
-          isPopular: true,
-          tags: ['liminal', 'hallway', 'nostalgic', 'horror', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'vaporwave_sunset',
-          title: 'Vaporwave Sunset',
-          prompt:
-              'Aesthetic vaporwave sunset scene with palm trees silhouetted against a pink and purple gradient sky, retro grid floor, Greek columns, neon signs, nostalgic 80s aesthetic, dreamy atmosphere',
-          isPopular: true,
-          tags: ['vaporwave', 'sunset', 'aesthetic', 'retro', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'dark_academia_library',
-          title: 'Dark Academia Library',
-          prompt:
-              'A moody dark academia library with towering bookshelves, antique furniture, candlelight, leather-bound books, gothic architecture, scholarly atmosphere, warm golden lighting, cinematic shadows',
-          isPopular: true,
-          tags: ['dark_academia', 'library', 'gothic', 'scholarly', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'cottagecore_garden',
-          title: 'Cottagecore Garden',
-          prompt:
-              'A whimsical cottagecore garden with wildflowers, vegetable patches, rustic wooden furniture, vintage teacups, soft natural lighting, pastoral atmosphere, cozy aesthetic, warm tones',
-          isPopular: true,
-          tags: ['cottagecore', 'garden', 'pastoral', 'cozy', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'abandoned_subway',
-          title: 'Abandoned Subway',
-          prompt:
-              'An abandoned subway tunnel with graffiti-covered walls, flickering lights, overgrown vegetation, mysterious atmosphere, urban exploration aesthetic, cinematic horror lighting, eerie mood',
-          tags: ['abandoned', 'subway', 'urban', 'exploration', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'neon_rain_alley',
-          title: 'Neon Rain Alley',
-          prompt:
-              'A narrow alleyway at night with neon signs reflecting on wet pavement, steam rising from manholes, cinematic rain effects, cyberpunk noir atmosphere, moody lighting, film noir style',
-          isPopular: true,
-          tags: ['neon', 'rain', 'alley', 'noir', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'astral_plane',
-          title: 'Astral Plane',
-          prompt:
-              'A mystical astral plane with floating geometric shapes, ethereal colors, cosmic patterns, spiritual energy, transcendental atmosphere, surreal composition, psychedelic aesthetic',
-          tags: ['astral', 'cosmic', 'spiritual', 'surreal', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'retro_futuristic_lab',
-          title: 'Retro Futuristic Lab',
-          prompt:
-              'A retro-futuristic laboratory from the 80s with analog computers, glowing screens, holographic displays, vintage sci-fi aesthetic, nostalgic technology, cinematic lighting',
-          tags: ['retro', 'futuristic', 'lab', 'sci-fi', 'trend'],
-          promptType: PromptType.textToImage,
-        ),
-        PromptItem(
-          id: 'misty_forest_path',
-          title: 'Misty Forest Path',
-          prompt:
-              'A mysterious forest path shrouded in thick mist, ancient trees on either side, dappled sunlight filtering through fog, fairy tale atmosphere, ethereal lighting, cinematic composition',
-          isPopular: true,
-          tags: ['forest', 'mist', 'path', 'mysterious', 'trend'],
+              "A gothic queen in a feathered black gown and a crown of raven feathers, ravens on her outstretched arms, dark lipstick, in a ruined cathedral with broken stained-glass windows, cold dawn light.",
+          tagline: "Ravens answer to her.",
+          description:
+              "A gothic queen in a feathered gown, crowned with raven feathers, with ravens perched on her outstretched arms.",
+          tags: ["gothic", "nobility", "fantasy"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.textToImage,
         ),
       ],
     ),
-    // Image to Image Prompts
     PromptCategory(
-      id: 'image_to_image',
-      name: 'Image to Image',
-      icon: '👤',
-      description: 'Transform your face with Halloween themes while preserving your features',
+      id: "image_to_image",
+      name: "Image to Image",
+      icon: "📸",
+      description: "Turn your photo into a Halloween look",
       prompts: [
-        // Classic Halloween Characters
         PromptItem(
-          id: 'halloween_ghost',
-          title: 'Halloween Ghost',
+          id: "halloween_vampire",
+          kind: StyleKind.fantasy,
+          title: "Vampire Noble",
           prompt:
-              'Transform into a stunning Halloween ghost with ethereal white glow, translucent skin, glowing eyes, supernatural aura, ghostly lighting, spectral effects, haunted graveyard background with ancient tombstones, misty fog, moonlight, supernatural atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          isPopular: false,
-          tags: ['ghost', 'halloween', 'ethereal', 'supernatural', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_vampire',
-          title: 'Halloween Vampire',
-          prompt:
-              'Become a mesmerizing Halloween vampire with pale porcelain skin, crimson red eyes, sharp fangs, dark gothic clothing, elegant gothic atmosphere, gothic castle interior background with ornate furniture, candlelit chandeliers, red velvet curtains, mysterious shadows, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          isPopular: false,
-          tags: ['vampire', 'halloween', 'gothic', 'elegant', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_witch',
-          title: 'Halloween Witch',
-          prompt:
-              'Transform into a captivating Halloween witch with pointed black hat, flowing dark robes, magical green aura, spell-casting hands, mystical forest background with ancient trees, floating magical orbs, glowing mushrooms, enchanted atmosphere, magical lighting, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          isPopular: false,
-          tags: ['witch', 'halloween', 'magic', 'mystical', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_zombie',
-          title: 'Halloween Zombie',
-          prompt:
-              'Become a terrifying Halloween zombie with decaying skin, hollow eyes, torn clothing, bloodstains, horror atmosphere, post-apocalyptic cityscape background with destroyed buildings, smoke, debris, dark stormy sky, apocalyptic lighting, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['zombie', 'halloween', 'horror', 'decay', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_skeleton',
-          title: 'Halloween Skeleton',
-          prompt:
-              'Become a powerful Halloween skeleton with glowing white bones, dark mystical robes, floating magical orbs, necromantic lighting, arcane energy, ancient necromancer laboratory background with dark stone walls, glowing runes, floating skulls, mystical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['skeleton', 'halloween', 'magic', 'mystical', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_pumpkin',
-          title: 'Halloween Pumpkin',
-          prompt:
-              'Transform into a spooky Halloween pumpkin with glowing orange skin, carved face, flickering candlelight, mystical aura, pumpkin patch background with glowing jack-o-lanterns, autumn leaves, spooky atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['pumpkin', 'halloween', 'spooky', 'autumn', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_mummy',
-          title: 'Halloween Mummy',
-          prompt:
-              'Become a terrifying Halloween mummy with ancient bandages, glowing eyes, mystical aura, Egyptian tomb background with hieroglyphs, golden artifacts, mystical lighting, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['mummy', 'halloween', 'ancient', 'mystical', 'classic'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Supernatural Beings
-        PromptItem(
-          id: 'halloween_demon',
-          title: 'Halloween Demon',
-          prompt:
-              'Transform into a fearsome Halloween demon with curved horns, glowing red eyes, dark leather armor, battle scars, infernal lighting, menacing aura, hellish battlefield background with lava rivers, burning rocks, demonic architecture, infernal atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['demon', 'halloween', 'battle', 'powerful', 'supernatural'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_werewolf',
-          title: 'Halloween Werewolf',
-          prompt:
-              'Transform into a savage Halloween werewolf with thick brown fur, razor-sharp claws, glowing yellow eyes, torn clothing, primal lighting, beastly aura, dark forest background with towering trees, full moon, howling wolves silhouette, primal wilderness atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['werewolf', 'halloween', 'fierce', 'beast', 'supernatural'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_phantom',
-          title: 'Halloween Phantom',
-          prompt:
-              'Become an elegant Halloween phantom with ornate white mask, flowing black cape, ghostly white gloves, ethereal lighting, mysterious presence, grand opera house background with velvet curtains, ornate chandeliers, ghostly mist, theatrical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['phantom', 'halloween', 'mysterious', 'elegant', 'supernatural'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_necromancer',
-          title: 'Halloween Necromancer',
-          prompt:
-              'Transform into a sinister Halloween necromancer with black hooded robes, glowing purple staff, floating skulls, shadowy lighting, death magic aura, ancient dark temple background with stone altars, glowing purple crystals, shadowy corners, necromantic atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['necromancer', 'halloween', 'shadowy', 'commanding', 'supernatural'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Royalty & Nobility
-        PromptItem(
-          id: 'halloween_royalty',
-          title: 'Halloween Royalty',
-          prompt:
-              'Become cursed Halloween royalty with golden crown, regal purple robes, glowing cursed jewelry, gothic lighting, supernatural regal aura, gothic throne room background with ornate furniture, royal tapestries, cursed artifacts, regal supernatural atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['royalty', 'halloween', 'cursed', 'regal', 'nobility'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_knight',
-          title: 'Halloween Knight',
-          prompt:
-              'Become a noble Halloween knight with armor, helmet, sword, medieval castle background with stone walls, torches, medieval atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['knight', 'halloween', 'medieval', 'noble', 'nobility'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Adventure & Action
-        PromptItem(
-          id: 'halloween_pirate',
-          title: 'Halloween Pirate',
-          prompt:
-              'Transform into a swashbuckling Halloween pirate with tricorn hat, eye patch, pirate coat, wooden leg, treasure map, pirate ship deck background with sails, ocean waves, treasure chest, nautical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['pirate', 'halloween', 'adventure', 'nautical', 'action'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_superhero',
-          title: 'Halloween Superhero',
-          prompt:
-              'Become a powerful Halloween superhero with cape, mask, superhero costume, glowing powers, city skyline background with skyscrapers, night sky, superhero atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['superhero', 'halloween', 'powerful', 'heroic', 'action'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_ninja',
-          title: 'Halloween Ninja',
-          prompt:
-              'Become a stealthy Halloween ninja with black outfit, mask, throwing stars, shadowy rooftop background with city lights, stealth atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['ninja', 'halloween', 'stealth', 'shadowy', 'action'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_samurai',
-          title: 'Halloween Samurai',
-          prompt:
-              'Transform into a fierce Halloween samurai with armor, katana, traditional clothing, Japanese garden background with cherry blossoms, traditional architecture, martial arts atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['samurai', 'halloween', 'martial_arts', 'traditional', 'action'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_gladiator',
-          title: 'Halloween Gladiator',
-          prompt:
-              'Transform into a powerful Halloween gladiator with armor, helmet, weapons, Roman colosseum background with arena, ancient architecture, gladiator atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['gladiator', 'halloween', 'ancient', 'powerful', 'action'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Sci-Fi & Futuristic
-        PromptItem(
-          id: 'halloween_robot',
-          title: 'Halloween Robot',
-          prompt:
-              'Transform into a futuristic Halloween robot with metallic skin, glowing circuits, robotic armor, cybernetic enhancements, futuristic laboratory background with high-tech equipment, neon lights, sci-fi atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['robot', 'halloween', 'futuristic', 'cybernetic', 'scifi'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_alien',
-          title: 'Halloween Alien',
-          prompt:
-              'Transform into a mysterious Halloween alien with green skin, antennae, space suit, spaceship interior background with control panels, stars, space atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['alien', 'halloween', 'space', 'mysterious', 'scifi'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_astronaut',
-          title: 'Halloween Astronaut',
-          prompt:
-              'Transform into a space Halloween astronaut with space suit, helmet, oxygen tank, space station background with stars, planets, space atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['astronaut', 'halloween', 'space', 'futuristic', 'scifi'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_cyberpunk',
-          title: 'Halloween Cyberpunk',
-          prompt:
-              'Transform into a futuristic Halloween cyberpunk with neon colors, cybernetic implants, futuristic clothing, neon-lit city background with holographic displays, cyberpunk atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['cyberpunk', 'halloween', 'futuristic', 'neon', 'scifi'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Steampunk & Vintage
-        PromptItem(
-          id: 'halloween_steampunk',
-          title: 'Halloween Steampunk',
-          prompt:
-              'Become a Victorian Halloween steampunk with goggles, brass accessories, Victorian clothing, steam-powered machinery background with gears, steam, Victorian atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['steampunk', 'halloween', 'victorian', 'mechanical', 'vintage'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_detective',
-          title: 'Halloween Detective',
-          prompt:
-              'Become a mysterious Halloween detective with trench coat, hat, magnifying glass, noir city background with streetlights, fog, detective atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['detective', 'halloween', 'noir', 'mysterious', 'vintage'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Fantasy & Magic
-        PromptItem(
-          id: 'halloween_sorcerer',
-          title: 'Halloween Sorcerer',
-          prompt:
-              'Become a powerful Halloween sorcerer with wizard hat, robes, magical staff, spellbook, mystical tower background with magical artifacts, floating orbs, magical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['sorcerer', 'halloween', 'magical', 'powerful', 'fantasy'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_fairy',
-          title: 'Halloween Fairy',
-          prompt:
-              'Transform into a magical Halloween fairy with wings, fairy costume, magical sparkles, enchanted forest background with glowing mushrooms, fairy lights, magical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['fairy', 'halloween', 'magical', 'enchanted', 'fantasy'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Circus & Entertainment
-        PromptItem(
-          id: 'halloween_clown',
-          title: 'Halloween Clown',
-          prompt:
-              'Become a creepy Halloween clown with colorful makeup, oversized shoes, polka dot costume, circus tent background with carnival lights, circus atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['clown', 'halloween', 'circus', 'colorful', 'entertainment'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Western & Adventure
-        PromptItem(
-          id: 'halloween_cowboy',
-          title: 'Halloween Cowboy',
-          prompt:
-              'Become a rugged Halloween cowboy with hat, boots, leather vest, wild west saloon background with wooden furniture, desert atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['cowboy', 'halloween', 'wild_west', 'rugged', 'western'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Professional & Modern
-        PromptItem(
-          id: 'halloween_doctor',
-          title: 'Halloween Doctor',
-          prompt:
-              'Transform into a mad Halloween doctor with lab coat, stethoscope, medical equipment, laboratory background with test tubes, medical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['doctor', 'halloween', 'medical', 'scientific', 'professional'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_chef',
-          title: 'Halloween Chef',
-          prompt:
-              'Become a culinary Halloween chef with chef hat, apron, cooking utensils, kitchen background with cooking equipment, culinary atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['chef', 'halloween', 'culinary', 'cooking', 'professional'],
-          promptType: PromptType.imageToImage,
-        ),
-        PromptItem(
-          id: 'halloween_artist',
-          title: 'Halloween Artist',
-          prompt:
-              'Transform into a creative Halloween artist with paint-splattered clothes, paintbrush, easel, art studio background with canvases, artistic atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['artist', 'halloween', 'creative', 'artistic', 'professional'],
-          promptType: PromptType.imageToImage,
-        ),
-        
-        // Trend & Modern Characters
-        PromptItem(
-          id: 'halloween_anime_character',
-          title: 'Anime Character',
-          prompt:
-              'Transform into a stunning anime Halloween character with vibrant anime art style, colorful hair, expressive eyes, dynamic pose, anime background with sakura petals, Japanese aesthetic, anime art style, cinematic lighting, dramatic shadows, photorealistic anime style, high quality, professional animation, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+              "the person as an elegant vampire in a high-collared black velvet coat with red silk lining, pale makeup, subtle fangs, hair swept back, in the candle-lit hall of an old gothic mansion, warm candlelight",
           isPopular: true,
-          tags: ['anime', 'halloween', 'japanese', 'vibrant', 'trend'],
+          tagline: "Become the one the night waits for.",
+          description:
+              "A high-collared velvet coat, subtle fangs and a calm gaze. You, as an elegant vampire who never loses composure.",
+          tags: ["vampire", "gothic", "nobility"],
+          ownsScene: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_kpop_idol',
-          title: 'K-Pop Idol',
+          id: "halloween_witch",
+          kind: StyleKind.fantasy,
+          title: "Enchanted Witch",
           prompt:
-              'Transform into a glamorous K-pop Halloween idol with stylish outfit, colorful hair, stage makeup, concert stage background with neon lights, dynamic lighting, K-pop aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+              "the person as a witch in a wide-brimmed pointed hat and dark embroidered robes, holding a small glowing lantern, in a cozy witch's cottage with a bubbling cauldron and hanging herbs, warm firelight",
           isPopular: true,
-          tags: ['kpop', 'halloween', 'glamorous', 'stylish', 'trend'],
+          tagline: "Your own spell, your own hat.",
+          description:
+              "A wide-brimmed hat, silver-embroidered robes and a lantern's glow. You, as a witch who knows exactly what they're doing.",
+          tags: ["witch", "fantasy", "moon"],
+          ownsScene: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_cyber_goth',
-          title: 'Cyber Goth',
+          id: "halloween_ghost",
+          kind: StyleKind.fantasy,
+          title: "Spectral Ghost",
           prompt:
-              'Transform into an edgy cyber goth Halloween character with neon hair, platform boots, cyberpunk clothing, cyber goth aesthetic, neon-lit club background with strobe lights, alternative fashion, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+              "the person as a gentle ghost in flowing pale clothing with a soft glow and faint mist around them, serene expression, in the hallway of an old Victorian house, soft moonlight through lace curtains",
+          tagline: "Soft glow, solid you.",
+          description:
+              "Flowing pale clothing, a faint mist at the hem and a quiet ethereal glow. Your face stays clear while the world turns spectral.",
+          tags: ["ghosts", "supernatural", "gothic"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_skeleton",
+          title: "Skeleton Makeup",
+          prompt:
+              "the person with elegant skeleton face paint in soft white and charcoal, dark clothing, a marigold behind the ear, in a candle-lit courtyard decorated for Día de Muertos, warm evening light",
           isPopular: true,
-          tags: ['cybergoth', 'halloween', 'edgy', 'alternative', 'trend'],
+          tagline: "Bone structure, but make it art.",
+          description:
+              "Skeleton makeup that follows your own features, dark tailoring and a marigold behind the ear. Day of the Dead elegance.",
+          tags: ["skeletons", "horror", "vintage"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_coquette',
-          title: 'Coquette Aesthetic',
+          id: "halloween_werewolf",
+          kind: StyleKind.fantasy,
+          title: "Werewolf",
           prompt:
-              'Transform into a romantic coquette Halloween character with soft pink and white outfit, bows, lace details, vintage accessories, aesthetic background with flowers, soft lighting, romantic atmosphere, dreamy aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+              "the person as a subtle werewolf with light fur along the jaw, amber eyes, small fangs and a torn flannel shirt, at the edge of a misty pine forest at night under a full moon, cool moonlight",
+          tagline: "Just a hint of wolf.",
+          description:
+              "Light fur along the jaw, amber eyes and a torn flannel shirt. Subtle enough that you're still unmistakably you.",
+          tags: ["horror", "supernatural", "moon"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_royalty",
+          kind: StyleKind.fantasy,
+          title: "Gothic Royalty",
+          prompt:
+              "the person as gothic royalty in black velvet and lace with a high ruffled collar and a slim jeweled crown, seated in a gothic castle throne room with tall candelabras, warm candlelight",
+          tagline: "Black velvet and a slim crown.",
+          description:
+              "Gothic royalty with a ruffled collar, jewels and a proud, calm pose, as if the castle was always yours.",
+          tags: ["nobility", "gothic", "fantasy"],
+          ownsScene: true,
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_retro_bedroom",
+          title: "Retro Slasher Night",
+          prompt:
+              "the person lounging on pink satin sheets in a retro 90s teen bedroom, holding a corded phone, movie posters on the wall, a tall shadowy figure out of focus in the doorway, warm lamp light",
           isPopular: true,
-          tags: ['coquette', 'halloween', 'romantic', 'aesthetic', 'trend'],
+          ownsScene: true,
+          tagline: "Pink sheets, corded phone, something at the door.",
+          description:
+              "You on a 90s sleepover bed with popcorn and movie posters, and a shadowy figure out of focus in the doorway.",
+          tags: ["retro", "horror", "vintage"],
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_eboy_egirl',
-          title: 'E-Boy/E-Girl',
+          id: "halloween_haunted_mansion",
+          kind: StyleKind.fantasy,
+          title: "Haunted Mansion Portrait",
           prompt:
-              'Transform into a trendy e-boy/e-girl Halloween character with colorful hair, choker, oversized hoodie, streetwear aesthetic, urban background with graffiti, social media aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
+              "the person in a Victorian mourning outfit standing at the foot of a grand staircase in a candle-lit mansion, dusty chandelier and cobwebs, faint ghostly figures in the shadows, soft warm candle light on the face",
+          ownsScene: true,
+          tagline: "Candlelight on a very old staircase.",
+          description:
+              "You in Victorian mourning at the foot of a grand staircase, dusty chandeliers above and ghosts barely visible in the dark.",
+          tags: ["house", "gothic", "ghosts"],
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_pumpkin_patch",
+          title: "Golden Pumpkin Patch",
+          prompt:
+              "the person in an oversized cozy knit sweater sitting among pumpkins in a golden-hour pumpkin patch, hay bales, light drifting fog, soft warm backlight in their hair",
           isPopular: true,
-          tags: ['eboy', 'egirl', 'halloween', 'trendy', 'trend'],
+          ownsScene: true,
+          tagline: "Golden hour, big sweater, endless pumpkins.",
+          description:
+              "A cozy autumn portrait among hay bales and drifting fog, with warm backlight glowing in your hair.",
+          tags: ["pumpkin", "party"],
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_fairy_grunge',
-          title: 'Fairy Grunge',
+          id: "halloween_gothic_ballroom",
+          title: "Gothic Masquerade Ball",
           prompt:
-              'Transform into an ethereal fairy grunge Halloween character with fairy wings, grunge clothing, nature accessories, mystical forest background with mushrooms, fairy lights, grunge aesthetic mixed with fantasy, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['fairygrunge', 'halloween', 'ethereal', 'grunge', 'trend'],
+              "the person in a black velvet masquerade outfit in a vast candle-lit gothic ballroom, crystal chandeliers, dancing couples softly blurred behind, holding an ornate mask at their side, soft golden candle glow",
+          ownsScene: true,
+          tagline: "The masquerade starts at midnight.",
+          description:
+              "Black velvet in a candlelit ballroom, crystal chandeliers overhead and dancers softly blurred behind you.",
+          tags: ["nobility", "gothic", "party"],
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_angelcore',
-          title: 'Angelcore Aesthetic',
+          id: "halloween_polaroid_party",
+          title: "Polaroid Costume Party",
           prompt:
-              'Transform into a heavenly angelcore Halloween character with angel wings, white flowing dress, halo, celestial accessories, cloud background with stars, angelic atmosphere, soft lighting, dreamy aesthetic, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['angelcore', 'halloween', 'heavenly', 'celestial', 'trend'],
+              "the person at an 80s Halloween costume party in a sequined jacket and a witch hat, tinsel streamers and paper skeletons on the wall behind, a harsh on-camera flash, grainy instant-photo colors",
+          ownsScene: true,
+          tagline: "Hard flash, soft nostalgia.",
+          description:
+              "An 80s costume party caught on instant film: sequins, tinsel, paper skeletons and a flash that blows out the background.",
+          tags: ["retro", "party", "vintage"],
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_dark_academia',
-          title: 'Dark Academia',
+          id: "halloween_mirror_ghost",
+          kind: StyleKind.fantasy,
+          title: "Mirror Ghost Portrait",
           prompt:
-              'Transform into a scholarly dark academia Halloween character with tweed blazer, turtleneck, vintage accessories, dark academia library background with books, candlelight, scholarly atmosphere, warm golden lighting, cinematic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          isPopular: true,
-          tags: ['dark_academia', 'halloween', 'scholarly', 'vintage', 'trend'],
+              "the person in Victorian lace and a high collar standing before an antique mirror in candlelight, their reflection a faint pale ghost with a slight smile, sepia tones, dust motes in the air",
+          ownsScene: true,
+          tagline: "Your reflection knows something.",
+          description:
+              "Candlelight, lace and an antique mirror where your reflection looks back a little too calmly.",
+          tags: ["ghosts", "gothic", "vintage"],
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_cottagecore',
-          title: 'Cottagecore',
+          id: "halloween_haunted_carnival",
+          title: "Haunted Carnival",
           prompt:
-              'Transform into a whimsical cottagecore Halloween character with floral dress, vintage accessories, nature elements, cottage garden background with wildflowers, soft natural lighting, pastoral atmosphere, cozy aesthetic, warm tones, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['cottagecore', 'halloween', 'whimsical', 'pastoral', 'trend'],
+              "the person at a deserted carnival at night, a neon ferris wheel glowing through low fog behind them, striped tents and flickering bulbs, a vintage jacket, soft light on their face",
+          ownsScene: true,
+          tagline: "The rides still run after closing.",
+          description:
+              "A neon ferris wheel through the fog, empty striped tents and flickering bulbs. A carnival that never quite closed.",
+          tags: ["party", "horror", "retro"],
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_goblin_core',
-          title: 'Goblin Core',
+          id: "halloween_apothecary_witch",
+          kind: StyleKind.fantasy,
+          title: "Apothecary Witch",
           prompt:
-              'Transform into a quirky goblin core Halloween character with mismatched clothing, nature accessories, quirky style, forest background with mushrooms, natural elements, goblin aesthetic, whimsical atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['goblincore', 'halloween', 'quirky', 'nature', 'trend'],
+              "the person as a cottage witch in an herb-filled apothecary kitchen, bundles of dried herbs hanging overhead, a cauldron steaming beside them, amber lamplight, a linen apron over dark robes",
+          ownsScene: true,
+          tagline: "Soup, but make it a spell.",
+          description:
+              "Dried herbs, a steaming cauldron and amber lamps. You as the witch who runs the coziest kitchen in the woods.",
+          tags: ["witch", "cozy", "fantasy"],
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_liminal_space',
-          title: 'Liminal Space',
+          id: "halloween_liminal_hallway",
+          title: "Liminal Hallway",
           prompt:
-              'Transform into a dreamlike liminal space Halloween character with retro outfit, nostalgic aesthetic, liminal space hallway background with endless corridors, flickering lights, unsettling atmosphere, dreamlike quality, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          isPopular: true,
-          tags: ['liminal', 'halloween', 'nostalgic', 'dreamlike', 'trend'],
+              "the person in a vintage bat-wing cape standing in an endless empty office hallway, flickering fluorescent lights, worn carpet, an uncanny quiet, slightly desaturated colors",
+          ownsScene: true,
+          tagline: "Somewhere between floors.",
+          description:
+              "An endless hallway of flickering lights and worn carpet. Unsettling in the quietest way, with you in a bat-wing cape.",
+          tags: ["liminal", "horror", "retro"],
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
         PromptItem(
-          id: 'halloween_vaporwave',
-          title: 'Vaporwave',
+          id: "halloween_harvest_scarecrow",
+          title: "Harvest Scarecrow",
           prompt:
-              'Transform into a retro vaporwave Halloween character with 80s aesthetic outfit, neon colors, retro accessories, vaporwave sunset background with palm trees, pink and purple gradient, nostalgic aesthetic, dreamy atmosphere, cinematic lighting, dramatic shadows, photorealistic, high quality, professional photography, keep exact same face, preserve facial features, maintain face identity, same person, identical face',
-          tags: ['vaporwave', 'halloween', 'retro', '80s', 'trend'],
+              "the person as a friendly scarecrow in a patched plaid shirt and straw hat, small stitched marks on the cheeks, straw tufts at the cuffs, a cornfield glowing at golden hour behind them",
+          ownsScene: true,
+          tagline: "Stuffed with straw, full of charm.",
+          description:
+              "A patched shirt, stitched cheeks and straw at the cuffs in a golden cornfield. A scarecrow you would wave back at.",
+          tags: ["pumpkin", "fantasy", "kids"],
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_fortune_teller",
+          title: "Fortune Teller",
+          prompt:
+              "the person as a fortune teller in a velvet tent, layered scarves and gold coin jewelry, a glowing crystal ball between their hands, candles and tarot cards on a draped table, warm flickering light",
+          ownsScene: true,
+          tagline: "Your future, by candlelight.",
+          description:
+              "Layered scarves, gold coins and a glowing crystal ball between your hands. The tent where every card means something.",
+          tags: ["supernatural", "fantasy", "vintage"],
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_graveyard_moon",
+          title: "Moonlit Graveyard",
+          prompt:
+              "the person in a long black coat standing among old mossy gravestones under a full moon, low mist around their ankles, a small lantern in hand, cool moonlight with a hint of warm glow",
+          ownsScene: true,
+          tagline: "A quiet walk, nothing to see here.",
+          description:
+              "Mossy gravestones, low mist and a lantern held low under a full moon. Calm, cold and just a little too quiet.",
+          tags: ["graveyard", "moon", "gothic"],
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_cursed_library",
+          kind: StyleKind.fantasy,
+          title: "Cursed Library",
+          prompt:
+              "the person reading by candlelight in a tall dusty library, floating books and drifting pages around them, a dark academia sweater and scarf, a black cat on the desk, warm amber light",
+          ownsScene: true,
+          tagline: "Every book is whispering.",
+          description:
+              "A tall dusty library where the books hover, the pages drift and a black cat guards the desk.",
+          tags: ["fantasy", "gothic", "supernatural"],
+          isPremium: true,
+          promptType: PromptType.imageToImage,
+        ),
+        PromptItem(
+          id: "halloween_cat_sorcerer",
+          kind: StyleKind.fantasy,
+          title: "Cat Familiar",
+          prompt:
+              "the person as a young sorcerer in a dark velvet jacket with a silver moon brooch, a black cat on their shoulder, in an old wizard's library with tall bookshelves and floating candles, warm light",
+          tagline: "The cat chose you, not the other way.",
+          description:
+              "A velvet jacket, a silver moon brooch and a black cat on your shoulder. Quietly powerful, and the cat knows it.",
+          tags: ["witch", "moon", "fantasy"],
+          ownsScene: true,
+          isPremium: true,
           promptType: PromptType.imageToImage,
         ),
       ],
     ),
   ];
+
+  /// Every season's library, for app-wide counts.
+  static List<List<PromptCategory>> get allSeasonLibraries => [
+    for (final id in SeasonId.values) _libraryFor(id),
+  ];
+
+  /// Exhaustive on purpose: a new [SeasonId] will not compile until it has
+  /// its own library (see docs/SEASONS.md).
+  static List<PromptCategory> _libraryFor(SeasonId id) => switch (id) {
+    SeasonId.halloween => _halloweenCategories,
+    SeasonId.christmas => ChristmasPrompts.categories,
+  };
+
+  /// The library of the active season.
+  static List<PromptCategory> get _promptCategories =>
+      _libraryFor(SeasonPalette.current.id);
 
   static List<PromptCategory> getAllCategories() {
     return _promptCategories;
@@ -655,26 +475,46 @@ class PromptService {
     return imageToImageCategory.prompts;
   }
 
-  // Get prompts by subcategory
-  static List<PromptItem> getTextToImagePromptsBySubcategory(String subcategory) {
-    return getTextToImagePrompts()
-        .where((prompt) => prompt.tags.contains(subcategory))
-        .toList();
+  /// The ready-made style with this title in any season (the gallery stores
+  /// a style's title as the image's label), or null for a typed prompt.
+  static PromptItem? findByTitle(String title) {
+    final t = title.trim();
+    for (final library in allSeasonLibraries) {
+      for (final c in library) {
+        for (final p in c.prompts) {
+          if (p.title == t) return p;
+        }
+      }
+    }
+    return null;
   }
 
-  static List<PromptItem> getImageToImagePromptsBySubcategory(String subcategory) {
-    return getImageToImagePrompts()
-        .where((prompt) => prompt.tags.contains(subcategory))
-        .toList();
-  }
+  /// The style a saved picture was made with: its stored label is the
+  /// style title, or (older pictures) the library text itself.
+  static PromptItem? findForSaved(String saved) =>
+      findByTitle(saved) ?? findByPrompt(saved);
 
-  // Get available subcategories
-  static List<String> getTextToImageSubcategories() {
-    return ['scene', 'fantasy', 'horror', 'trend'];
-  }
+  /// What a saved picture is called on screen, in the gallery and on its
+  /// detail screen alike. Never the library prompt text.
+  static String savedTitle(String saved) => findForSaved(saved)?.title ?? saved;
 
-  static List<String> getImageToImageSubcategories() {
-    return ['classic', 'supernatural', 'nobility', 'action', 'scifi', 'vintage', 'fantasy', 'entertainment', 'western', 'professional', 'trend'];
+  /// Library prompt whose text is exactly [prompt] (whitespace-normalized),
+  /// or null when the user typed or edited their own.
+  static PromptItem? findByPrompt(String prompt) {
+    String norm(String s) => s
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[,.;:!\s]+$'), '');
+    final target = norm(prompt);
+    for (final category in [
+      ..._halloweenCategories,
+      ...ChristmasPrompts.categories,
+    ]) {
+      for (final item in category.prompts) {
+        if (norm(item.prompt) == target) return item;
+      }
+    }
+    return null;
   }
 
   static List<PromptItem> searchPrompts(String query) {

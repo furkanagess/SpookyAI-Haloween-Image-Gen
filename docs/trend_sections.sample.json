@@ -1,0 +1,407 @@
+{
+  "gta6": {
+    "title": "GTA 6 Vibes",
+    "subtitle": "Launch week: neon Miami, cover-art you",
+    "emoji": "🌴",
+    "accent": "#FF2D95",
+    "order": 1,
+    "active": true,
+    "items": [
+      {
+        "id": "loading_screen",
+        "title": "Loading Screen Poster",
+        "imageUrl": "trends/gta6/DZpKcmo-eZnjUf0VzflCt_gGpfiUj5.png",
+        "tagline": "You, as the cover art",
+        "description": "Bold illustrated game poster with thick outlines and a sunset beach behind you.",
+        "type": "image",
+        "isHot": true,
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "game",
+          "poster",
+          "neon"
+        ],
+        "prompt": "Bold illustrated video game loading screen portrait of the person, thick ink outlines, cel shading, Miami beach at sunset with palm trees and pink neon signs behind them. Keep the same face."
+      },
+      {
+        "id": "neon_night_drive",
+        "badge": "NEW",
+        "badgeColor": "#00C2A8",
+        "title": "Neon Night Drive",
+        "imageUrl": "trends/gta6/uzA9Isp_orz7mBpNmmqDy_aJCOhsCL.png",
+        "tagline": "Convertible, palm trees, no rules",
+        "description": "Leaning on a vintage convertible on a neon-lit ocean drive at night.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "car",
+          "night",
+          "neon"
+        ],
+        "prompt": "Cinematic photo of the person leaning on a vintage convertible on a neon-lit ocean boulevard at night, palm trees, pink and teal reflections on wet asphalt. Keep the same face."
+      },
+      {
+        "id": "vice_beach_city",
+        "title": "Sunset Skyline",
+        "imageUrl": "trends/gta6/8L__ctpBjcFOfBSN-_PP__BBKKuMeO.jpg",
+        "tagline": "Tropical city, golden hour",
+        "description": "A sweeping tropical city skyline at golden hour in game-art style.",
+        "type": "text",
+        "kind": "fantasy",
+        "tags": [
+          "city",
+          "sunset"
+        ],
+        "prompt": "Illustrated open-world game key art of a tropical coastal city skyline at golden hour, art deco hotels, palm trees, speedboats on turquoise water, vivid pink and orange sky."
+      },
+      {
+        "id": "wanted_poster",
+        "title": "Most Wanted",
+        "imageUrl": "trends/gta6/32in9nr0qV3-kibG21vdj_ZkOtzI99.png",
+        "tagline": "Five stars, zero regrets",
+        "description": "A gritty wanted poster starring you, with helicopters in the sky.",
+        "type": "image",
+        "isPremium": true,
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "poster",
+          "action"
+        ],
+        "prompt": "Gritty illustrated action game poster of the person in sunglasses and a floral shirt, police helicopter searchlights in a neon night sky, comic-style halftone texture. Keep the same face."
+      }
+    ]
+  },
+  "christmas_photobooth": {
+    "title": "Christmas Photobooth",
+    "subtitle": "The holiday look everyone is posting",
+    "emoji": "🎄",
+    "accent": "#E53935",
+    "order": 2,
+    "active": true,
+    "endsAt": "2026-12-27T00:00:00Z",
+    "items": [
+      {
+        "id": "photobooth_strip",
+        "title": "Holiday Photobooth",
+        "tagline": "Flash, tinsel, big smile",
+        "description": "A classic photobooth shot with tinsel curtain and a Santa hat.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "christmas",
+          "photobooth"
+        ],
+        "prompt": "Candid flash photobooth photo of the person in a Santa hat in front of a shiny red tinsel curtain, holding a candy cane, playful smile. Keep the same face.",
+        "isHot": true,
+        "badge": "NEW",
+        "imageUrl": "trends/christmas_photobooth/xBUHbEdqpOuPce-CwU808_P0EKpeEX.png"
+      },
+      {
+        "id": "red_hood",
+        "title": "Red Hood in the Snow",
+        "tagline": "Fairytale winter walk",
+        "description": "A red velvet cloak in a snowy forest at dusk.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "christmas",
+          "fairytale"
+        ],
+        "prompt": "Cinematic photo of the person in a red velvet hooded cloak walking through a snowy pine forest at dusk, soft falling snow, warm lantern glow. Keep the same face.",
+        "isHot": true,
+        "imageUrl": "trends/christmas_photobooth/DSJ6qNbX_dxj_ThjddnrI_SFsKoYcw.png"
+      },
+      {
+        "id": "snow_globe",
+        "title": "Inside a Snow Globe",
+        "tagline": "Tiny world, big magic",
+        "description": "You, miniature, inside a glittering snow globe.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "christmas",
+          "miniature"
+        ],
+        "prompt": "Magical close-up of a glass snow globe on a wooden table with the person inside as a tiny figure in a winter coat, glittering snow, fairy lights behind. Keep the same face.",
+        "imageUrl": "trends/christmas_photobooth/FHm-IxOHsJ7ssCvBpNZ3q_S6dHVjwH.png"
+      },
+      {
+        "id": "pajama_portrait",
+        "title": "Matching Pajama Portrait",
+        "tagline": "Cozy family-card vibes",
+        "description": "Matching plaid pajamas by the tree, ready for the family card.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "christmas",
+          "cozy"
+        ],
+        "prompt": "Warm portrait of the person in red plaid Christmas pajamas sitting by a decorated tree with wrapped gifts, soft golden fairy light. Keep the same face.",
+        "isPremium": true,
+        "imageUrl": "trends/christmas_photobooth/qn-Yxhg97YPpZy76oC_Mi_QQT8gNnN.png"
+      }
+    ]
+  },
+  "action_figure": {
+    "title": "Action Figure Box",
+    "subtitle": "The year's most shared AI look",
+    "emoji": "🧸",
+    "accent": "#7C4DFF",
+    "order": 3,
+    "active": true,
+    "items": [
+      {
+        "id": "boxed_figure",
+        "title": "Collector Figure",
+        "tagline": "You, in blister packaging",
+        "description": "A collectible action figure of you in a toy-store box with accessories.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "toy",
+          "figure"
+        ],
+        "prompt": "Product photo of a collectible action figure of the person inside a clear plastic blister pack with a bold printed cardboard backing and small accessories beside the figure, toy store lighting. Keep the same face.",
+        "isHot": true,
+        "imageUrl": "trends/action_figure/-2zVu3pCefgTdMt2-VI6U_xemOxveL.png"
+      },
+      {
+        "id": "chibi_sticker",
+        "title": "Chibi Sticker",
+        "tagline": "Big head, tiny body",
+        "description": "A cute chibi sticker version with a white outline.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "chibi",
+          "sticker"
+        ],
+        "prompt": "Cute chibi sticker illustration of the person with a big head and tiny body, glossy colors, thick white sticker border, plain background. Keep the same face.",
+        "imageUrl": "trends/action_figure/t5LdcFK7kYFz6_SP_IPIx_xyJaTsFO.png"
+      },
+      {
+        "id": "mini_me_desk",
+        "title": "Mini-Me on the Desk",
+        "tagline": "Tiny figurine of you",
+        "description": "A small painted figurine of you standing on a desk.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "toy",
+          "miniature"
+        ],
+        "prompt": "Macro photo of a small hand-painted figurine of the person standing on a wooden desk next to a coffee cup and a keyboard, shallow depth of field. Keep the same face.",
+        "isPremium": true,
+        "imageUrl": "trends/action_figure/zrw00XbT1fRPyQoo2fACs_qd84Ns08.png"
+      }
+    ]
+  },
+  "thanksgiving": {
+    "title": "Thanksgiving",
+    "subtitle": "Cozy, golden, grateful",
+    "emoji": "🦃",
+    "accent": "#FF8A00",
+    "order": 4,
+    "active": true,
+    "endsAt": "2026-12-01T00:00:00Z",
+    "items": [
+      {
+        "id": "cozy_feast",
+        "title": "Cozy Family Feast",
+        "imageUrl": "trends/thanksgiving/lKLKRyd69bN5AZvPXLs3d_q3VsbwVK.jpg",
+        "tagline": "Warm candlelit dinner",
+        "description": "You at a candlelit Thanksgiving table with all the classics.",
+        "type": "image",
+        "isHot": true,
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "dinner",
+          "family",
+          "autumn"
+        ],
+        "prompt": "Warm candid photo of the person at a Thanksgiving dinner table with roast turkey, pumpkin pie and autumn leaves, soft golden candlelight. Keep the same face."
+      },
+      {
+        "id": "pumpkin_patch",
+        "title": "Pumpkin Patch Portrait",
+        "imageUrl": "trends/thanksgiving/t4Td1F_F916eMCu8YMsr-_3VMapm0z.png",
+        "tagline": "Golden hour in the fields",
+        "description": "A soft autumn portrait among pumpkins and hay bales.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "autumn",
+          "portrait"
+        ],
+        "prompt": "Golden hour portrait of the person in a cozy knit sweater sitting on a hay bale in a pumpkin patch, orange leaves, warm soft backlight. Keep the same face."
+      },
+      {
+        "id": "harvest_table",
+        "title": "Harvest Table",
+        "imageUrl": "trends/thanksgiving/BFAblLCqOskbtv8Rert0g_qjs2jTKb.png",
+        "tagline": "Magazine-cover spread",
+        "description": "A styled harvest table straight out of a food magazine.",
+        "type": "text",
+        "kind": "realistic",
+        "tags": [
+          "food",
+          "autumn"
+        ],
+        "prompt": "Overhead food magazine photo of a rustic Thanksgiving harvest table, roast turkey, cranberry sauce, pies, candles, mini pumpkins and autumn leaves on dark wood."
+      }
+    ]
+  },
+  "black_friday": {
+    "title": "Black Friday",
+    "subtitle": "Big deals, bigger looks",
+    "emoji": "🛍️",
+    "accent": "#212121",
+    "order": 5,
+    "active": true,
+    "endsAt": "2026-12-01T00:00:00Z",
+    "items": [
+      {
+        "id": "shopping_cover",
+        "title": "Shopping Spree Cover",
+        "tagline": "Fashion magazine, sale edition",
+        "description": "A glossy magazine cover of you with shopping bags.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "shopping",
+          "magazine"
+        ],
+        "prompt": "Glossy fashion magazine cover photo of the person holding many colorful shopping bags on a city street, bold sale signs in shop windows behind them. Keep the same face.",
+        "isHot": true,
+        "imageUrl": "trends/black_friday/5lHhBtzci0ATyfkDMXUl6_qjDeiVfE.png"
+      },
+      {
+        "id": "sale_billboard",
+        "title": "Sale Billboard Star",
+        "tagline": "Your face, giant sale ad",
+        "description": "A huge city billboard ad starring you.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "billboard",
+          "sale"
+        ],
+        "prompt": "Street photo of a giant city billboard advertisement starring the person, bright red and black sale design, crowds and taxis below at dusk. Keep the same face.",
+        "imageUrl": "trends/black_friday/tXraItC07PqO3L1BIZrgj_pkcXVQTl.png"
+      }
+    ]
+  },
+  "y2k_film": {
+    "title": "90s Film & Y2K",
+    "subtitle": "Grainy flash, glossy lips, pure nostalgia",
+    "emoji": "📼",
+    "accent": "#00BCD4",
+    "order": 6,
+    "active": true,
+    "items": [
+      {
+        "id": "film_flash",
+        "title": "90s Film Flash",
+        "tagline": "Disposable camera memories",
+        "description": "A grainy 90s disposable-camera party shot.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "90s",
+          "film"
+        ],
+        "prompt": "Grainy 90s disposable camera photo of the person at a house party, harsh direct flash, warm film colors, date stamp in the corner. Keep the same face.",
+        "isHot": true,
+        "imageUrl": "trends/y2k_film/uXPz1d5_2KLPF3JBgzo7g_0dg660uS.png"
+      },
+      {
+        "id": "y2k_mall",
+        "title": "Y2K Mall Portrait",
+        "tagline": "Butterfly clips and frosted gloss",
+        "description": "A shiny Y2K glamour shot at the mall.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "y2k",
+          "retro"
+        ],
+        "prompt": "Y2K glamour portrait of the person in a shiny silver jacket with butterfly hair clips at a 2000s shopping mall, soft-focus glow, pastel colors. Keep the same face.",
+        "imageUrl": "trends/y2k_film/LH7WF-UkBDQAGR_-_A__8_Z9CXHQq0.png"
+      },
+      {
+        "id": "fake_poster",
+        "title": "Movie Poster Starring You",
+        "tagline": "Coming soon to theaters",
+        "description": "A dramatic blockbuster-style poster with you as the lead.",
+        "type": "image",
+        "ownsScene": true,
+        "kind": "fantasy",
+        "tags": [
+          "poster",
+          "cinema"
+        ],
+        "prompt": "Dramatic blockbuster movie poster of the person as the lead hero, epic sky, cinematic lighting, big bold title area left empty at the top. Keep the same face.",
+        "isPremium": true,
+        "imageUrl": "trends/y2k_film/3Rcg6clRd7h6TVibUv_BY_SOULHuFI.png"
+      }
+    ]
+  },
+  "winter_glow": {
+    "title": "Winter Glow",
+    "subtitle": "Snow, lights and cozy nights",
+    "emoji": "❄️",
+    "accent": "#4FC3F7",
+    "order": 7,
+    "active": true,
+    "items": [
+      {
+        "id": "snowy_lights",
+        "title": "Snowfall & String Lights",
+        "tagline": "Your winter movie poster",
+        "description": "A dreamy snowy street lit with warm string lights.",
+        "type": "image",
+        "isHot": true,
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "winter",
+          "lights"
+        ],
+        "prompt": "Dreamy night photo of the person in a wool coat and scarf on a snowy street lined with warm string lights, gentle snowfall, soft bokeh. Keep the same face.",
+        "imageUrl": "trends/winter_glow/XiJ_ShQKiOXK1WA2Sl5M6_e7ZifNAK.png"
+      },
+      {
+        "id": "cabin_cocoa",
+        "title": "Cabin Cocoa",
+        "tagline": "Fireplace and hot chocolate",
+        "description": "Cozy in a wooden cabin with a fire and a mug of cocoa.",
+        "type": "image",
+        "isPremium": true,
+        "ownsScene": true,
+        "kind": "realistic",
+        "tags": [
+          "cozy",
+          "winter"
+        ],
+        "prompt": "Cozy photo of the person wrapped in a blanket holding hot cocoa by a crackling fireplace in a wooden cabin, snow outside the window, warm firelight. Keep the same face.",
+        "imageUrl": "trends/winter_glow/TD_uCkB9suKjb6jA45ifb_UtQouMgS.png"
+      }
+    ]
+  }
+}

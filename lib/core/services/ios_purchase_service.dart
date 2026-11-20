@@ -13,29 +13,39 @@ class IOSPurchaseService {
       // Premium Subscription Package (at the top)
       const Pack(
         name: 'SpookyAI Premium',
-        tokens: 20,
+        tokens: 50,
         productId: 'spookyai_premium',
         price: '4.99',
         note: 'Monthly subscription with exclusive benefits',
-        imageAsset: 'assets/images/ghost-face.png',
-        whiteTint: true,
         isPremium: true,
         features: [
-          '20 tokens per month',
+          '50 tokens per month',
           'Access to all prompts',
-          'Daily token spin wheel',
           'Priority AI processing',
         ],
       ),
-      // iOS Token Packs - Using App Store Connect packages (In Review)
+      // iOS Token Packs - biggest first (Using App Store Connect packages).
       const Pack(
-        name: '1 Token',
-        tokens: 1,
-        productId: '1_token',
-        price: '0.99',
-        note: 'Perfect for trying out SpookyAI',
-        imageAsset: 'assets/images/spider.png',
-        whiteTint: true,
+        name: '150 Token',
+        tokens: 150,
+        productId: '150_token',
+        price: '39.99',
+        note: 'For professional content creators 💀',
+      ),
+      const Pack(
+        name: '60 Token',
+        tokens: 60,
+        productId: '60_token',
+        price: '19.99',
+        note: 'Most popular among creators 🧙',
+        isPopular: true,
+      ),
+      const Pack(
+        name: '25 Token',
+        tokens: 25,
+        productId: '25_token',
+        price: '9.99',
+        note: 'A nice step up for regular creators 👻',
       ),
       const Pack(
         name: '10 Token',
@@ -43,32 +53,6 @@ class IOSPurchaseService {
         productId: '10_token',
         price: '4.99',
         note: 'Great for exploring different styles 🎃',
-        imageAsset: 'assets/images/pumpkin.png',
-      ),
-      const Pack(
-        name: '25 Token',
-        tokens: 25,
-        productId: '25_token',
-        price: '9.99',
-        note: 'Most popular among creators 👻',
-        imageAsset: 'assets/images/haunted-house.png',
-      ),
-      const Pack(
-        name: '60 Token',
-        tokens: 60,
-        productId: '60_token',
-        price: '19.99',
-        note: 'For serious digital artists 🧙',
-        imageAsset: 'assets/images/witch-hat.png',
-      ),
-      const Pack(
-        name: '150 Token',
-        tokens: 150,
-        productId: '150_token',
-        price: '39.99',
-        note: 'For professional content creators 💀',
-        imageAsset: 'assets/images/ghost-face.png',
-        whiteTint: true,
       ),
     ];
   }
@@ -76,7 +60,6 @@ class IOSPurchaseService {
   /// Get iOS-specific product IDs
   static Set<String> getIOSProductIds() {
     return {
-      '1_token',
       '10_token',
       '25_token',
       '60_token',

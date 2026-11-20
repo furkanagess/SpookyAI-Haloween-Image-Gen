@@ -1,0 +1,130 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SpookyAI Store Shots Portrait</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=block" rel="stylesheet">
+<style>
+:root{--bg:#0F0B1A;--or:#FF6A00;--or2:#FF8A00;--pu:#B25AFF;--mut:#C2B4D8;--xr:#E53935;--xg:#43A047}
+*{box-sizing:border-box;margin:0}
+html,body{width:1242px;height:2688px;overflow:hidden;background:var(--bg);font-family:Inter,sans-serif;color:#fff}
+.s{position:absolute;inset:0;display:none;overflow:hidden}.s.on{display:block}
+.glow{position:absolute;border-radius:50%;filter:blur(160px);opacity:.5}
+.copy{position:absolute;left:80px;right:80px;top:190px;text-align:center;z-index:5}
+.eye{display:inline-block;font:700 34px Inter;letter-spacing:.12em;text-transform:uppercase;color:var(--or2);padding:16px 32px;border-radius:999px;background:rgba(255,106,0,.12);border:2px solid rgba(255,106,0,.45);margin-bottom:44px}
+h1{font:800 132px/1 'Bricolage Grotesque';letter-spacing:-.03em}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--or),var(--or2) 45%,var(--pu));-webkit-background-clip:text;color:transparent}
+p.sub{font:500 46px/1.38 Inter;color:var(--mut);margin:40px auto 0;max-width:1000px}
+.card{position:absolute;border-radius:44px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 3px rgba(255,255,255,.12)}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.tag{position:absolute;left:24px;bottom:24px;padding:14px 24px;border-radius:999px;background:rgba(15,11,26,.75);backdrop-filter:blur(10px);font:700 30px Inter;border:2px solid rgba(255,255,255,.2);white-space:nowrap}
+.phone{position:absolute;width:760px;height:1560px;border-radius:100px;background:#05030a;padding:24px;box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 0 5px #2a2238,0 0 140px rgba(178,90,255,.3)}
+.scr{position:relative;width:100%;height:100%;border-radius:78px;overflow:hidden;background:#140f22}
+.scr>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.notch{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:200px;height:58px;border-radius:30px;background:#000;z-index:9}
+.bar{position:absolute;top:110px;left:40px;right:40px;display:flex;justify-content:space-between;align-items:center;z-index:8;font:800 42px 'Bricolage Grotesque';text-shadow:0 3px 12px #000}
+.tok{font:700 30px Inter;padding:12px 22px;border-radius:999px;background:rgba(255,106,0,.25);color:var(--or2);border:2px solid rgba(255,106,0,.5);text-shadow:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:14px;height:108px;border-radius:34px;background:linear-gradient(90deg,var(--or),var(--or2));font:700 40px Inter;color:#fff;box-shadow:0 18px 44px rgba(255,106,0,.45)}
+.ghost{background:rgba(255,255,255,.16);box-shadow:none;backdrop-filter:blur(10px)}
+.arrow{position:absolute;width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,var(--or),var(--pu));display:grid;place-items:center;font:800 70px Inter;box-shadow:0 0 70px rgba(255,106,0,.55);z-index:7}
+.pills{position:absolute;left:0;right:0;display:flex;justify-content:center;gap:20px;z-index:6}
+.pill{padding:22px 34px;border-radius:999px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.16);font:700 34px Inter;backdrop-filter:blur(8px)}
+</style></head><body>
+
+<!-- 1 HERO -->
+<section class="s" id="s1">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--pu);left:-300px;top:-300px"></div>
+ <div class="glow" style="width:1000px;height:1000px;background:var(--or);left:500px;top:1500px;opacity:.38"></div>
+ <div class="copy">
+  <div class="eye">🎃 AI Art Generator</div>
+  <h1>AI Halloween<br>&amp; Christmas<br><em>Photo Maker</em></h1>
+  <p class="sub">Turn words or selfies into spooky &amp; festive art in seconds</p>
+ </div>
+ <div class="card" style="width:470px;height:800px;left:-60px;top:1180px;transform:rotate(-12deg)"><img src="H/text-to-image/pumpkin_king.png"></div>
+ <div class="card" style="width:470px;height:800px;left:830px;top:1180px;transform:rotate(12deg)"><img src="C/image-to-image/ice_queen.jpg"></div>
+ <div class="card" style="width:600px;height:1040px;left:321px;top:1020px;z-index:3;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 4px var(--or),0 0 90px rgba(255,106,0,.4)"><img src="H/image-to-image/enchantedd_witch.png"><span class="tag">🔮 Enchanted Witch</span></div>
+ <div class="pills" style="top:2240px;flex-wrap:wrap;padding:0 60px"><span class="pill">✨ Text to Image</span><span class="pill">🤳 Selfie to Art</span><span class="pill">🎬 Photo to Video</span></div>
+</section>
+
+<!-- 2 TEXT TO IMAGE -->
+<section class="s" id="s2">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--pu);left:300px;top:1000px;opacity:.45"></div>
+ <div class="glow" style="width:800px;height:800px;background:var(--or);left:-300px;top:-200px;opacity:.28"></div>
+ <div class="copy">
+  <div class="eye">✨ Text to Image AI</div>
+  <h1>Describe it.<br><em>AI paints it.</em></h1>
+  <p class="sub">Type any idea, from haunted castles to frosty dragons</p>
+ </div>
+ <div class="phone" style="left:241px;top:1120px;transform:scale(.93);transform-origin:top center"><div class="scr">
+  <div class="notch"></div><img src="H/text-to-image/moonlit_witch.png">
+  <div class="bar"><span>Your result</span><span class="tok">🪙 24</span></div>
+  <div style="position:absolute;left:40px;right:40px;bottom:50px;display:flex;gap:22px"><div class="btn" style="flex:1">⬇ Save HD</div><div class="btn ghost" style="flex:1">↗ Share</div></div>
+ </div></div>
+ <div style="position:absolute;left:90px;right:90px;top:820px;z-index:8;padding:40px 46px;border-radius:44px;background:rgba(29,22,43,.95);border:3px solid rgba(178,90,255,.6);box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 60px rgba(178,90,255,.3)">
+  <div style="font:700 28px Inter;color:var(--mut);letter-spacing:.12em;margin-bottom:16px">YOUR PROMPT</div>
+  <div style="font:600 46px/1.35 Inter">A moonlit witch casting glowing spells in a misty forest<span style="color:var(--or)">|</span></div>
+ </div>
+ <div class="card" style="width:300px;height:450px;left:-40px;top:1900px;transform:rotate(-10deg);z-index:9"><img src="C/text-to-image/frost_dragon.jpg"></div>
+ <div class="card" style="width:300px;height:450px;left:980px;top:1780px;transform:rotate(10deg);z-index:9"><img src="H/text-to-image/friendly_ghosty.jpg"></div>
+</section>
+
+<!-- 3 SELFIE -->
+<section class="s" id="s3">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--or);left:-400px;top:900px;opacity:.3"></div>
+ <div class="glow" style="width:1000px;height:1000px;background:var(--pu);left:500px;top:1600px;opacity:.4"></div>
+ <div class="copy">
+  <div class="eye">🤳 AI Selfie Transform</div>
+  <h1>Selfie to<br><em>Costume Art</em></h1>
+  <p class="sub">Become a witch, a vampire or an ice queen. Your face, a whole new world</p>
+ </div>
+ <div class="card" style="width:440px;height:760px;left:70px;top:1020px;transform:rotate(-4deg)"><img src="R/girl.jpeg"><span class="tag">📷 Your selfie</span></div>
+ <div class="card" style="width:560px;height:960px;left:610px;top:1000px;transform:rotate(3deg);z-index:3;box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 0 4px var(--or),0 0 90px rgba(255,106,0,.45)"><img src="H/image-to-image/skeleton_makeup.png"><span class="tag">💀 Skeleton Glam</span></div>
+ <div class="arrow" style="left:500px;top:1320px">→</div>
+ <div class="card" style="width:340px;height:500px;left:70px;top:1880px;transform:rotate(-3deg)"><img src="H/image-to-image/enchantedd_witch.png"><span class="tag" style="font-size:26px">🧙 Witch</span></div>
+ <div class="card" style="width:340px;height:500px;left:451px;top:2040px;z-index:4"><img src="C/image-to-image/ice_queen.jpg"><span class="tag" style="font-size:26px">❄️ Ice Queen</span></div>
+ <div class="card" style="width:340px;height:500px;left:832px;top:2050px;transform:rotate(3deg)"><img src="H/image-to-image/gothic_ball.png"><span class="tag" style="font-size:26px">🦇 Gothic Ball</span></div>
+</section>
+
+<!-- 4 VIDEO -->
+<section class="s" id="s4">
+ <div class="glow" style="width:1000px;height:1000px;background:var(--or);left:400px;top:1100px;opacity:.35"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--pu);left:-300px;top:-200px"></div>
+ <div class="copy">
+  <div class="eye">🎬 Photo to Video AI</div>
+  <h1>Bring your<br>art <em>to life</em></h1>
+  <p class="sub">Animate any creation into a magical clip, ready to share</p>
+ </div>
+ <div class="card" style="width:440px;height:780px;left:-40px;top:1300px;transform:rotate(-9deg)"><img src="H/image-to-video/telephone.jpg"><span class="tag">▶ 0:05</span></div>
+ <div class="phone" style="left:380px;top:960px"><div class="scr">
+  <div class="notch"></div><img src="H/image-to-video/blackcat.jpg">
+  <div class="bar"><span>Video</span><span class="tok">🪙 24</span></div>
+  <div style="position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(12px);border:4px solid rgba(255,255,255,.65);display:grid;place-items:center;font-size:80px;padding-left:14px">▶</div>
+  <div style="position:absolute;left:44px;right:44px;bottom:200px;height:12px;border-radius:6px;background:rgba(255,255,255,.25)"><div style="width:62%;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--or),var(--or2))"></div></div>
+  <div class="btn" style="position:absolute;left:44px;right:44px;bottom:54px">⬇ Save video</div>
+ </div></div>
+</section>
+
+<!-- 5 STYLES & SEASONS -->
+<section class="s" id="s5">
+ <div class="glow" style="width:900px;height:900px;background:var(--or);left:-300px;top:-300px;opacity:.3"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--xr);left:600px;top:1800px;opacity:.3"></div>
+ <div class="glow" style="width:700px;height:700px;background:var(--xg);left:700px;top:300px;opacity:.18"></div>
+ <div class="copy">
+  <div class="eye">🎨 40+ Ready-Made Styles</div>
+  <h1>Halloween &amp;<br><em>Christmas</em> Styles</h1>
+  <p class="sub">One tap for a polished look. New worlds every season</p>
+ </div>
+ <div id="grid" style="position:absolute;left:-150px;top:1060px;width:1560px;display:grid;grid-template-columns:repeat(5,280px);gap:30px;transform:rotate(-7deg)"></div>
+ <div style="position:absolute;left:0;right:0;bottom:0;height:420px;background:linear-gradient(transparent,var(--bg) 70%);z-index:5"></div>
+ <div class="pills" style="bottom:120px"><span class="pill">🎃 Halloween</span><span class="pill">🎄 Christmas</span><span class="pill">⬇ HD Save</span></div>
+</section>
+
+<script>
+const H='H/text-to-image/',HI='H/image-to-image/',C='C/text-to-image/',CI='C/image-to-image/';
+const cols=[
+ [[HI+'fortune_teller.png','Fortune Teller'],[H+'jacko_lantern.jpg',"Jack-o'-Lantern"],[HI+'gothic_royal.png','Gothic Royal'],[H+'scarecrow_guardian.png','Scarecrow']],
+ [[H+'raven_queen.jpg','Raven Queen'],[HI+'vampire_noble.png','Vampire'],[H+'skeleton_musician.jpg','Bone Band'],[HI+'haunted_carnival.png','Carnival'],[H+'ghost_bride.jpg','Ghost Bride']],
+ [[HI+'moonlit_graveyard.png','Graveyard'],[CI+'jolly_santa.jpg','Jolly Santa'],[C+'santa_workshop.jpg','Santa Workshop'],[HI+'werewolf.png','Werewolf']],
+ [[CI+'cozy_sweater.jpg','Cozy Sweater'],[C+'reindeer.jpg','Aurora Reindeer'],[CI+'winter_royalty.jpg','Winter Royal'],[C+'lantern_snowman.jpg','Snowman'],[CI+'nutcracker.jpg','Nutcracker']],
+ [[C+'gingerbread_village.jpg','Gingerbread'],[CI+'ice_queen.jpg','Ice Queen'],[C+'winter_market.jpg','Winter Market'],[C+'frost_queen.jpg','Frost Queen']]];
+const g=document.getElementById('grid');
+cols.forEach((c,i)=>{const d=document.createElement('div');d.style.cssText=`display:flex;flex-direction:column;gap:30px;margin-top:${[120,-60,60,-140,80][i]}px`;
+ c.forEach(([s,t])=>{d.innerHTML+=`<div class="card" style="position:relative;width:280px;height:420px;border-radius:34px"><img src="${s}"><span class="tag" style="font-size:24px;left:14px;bottom:14px;padding:10px 16px">${t}</span></div>`});g.appendChild(d)});
+document.getElementById('s'+(location.hash.slice(1)||'1')).classList.add('on');
+</script></body></html>

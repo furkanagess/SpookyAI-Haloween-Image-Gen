@@ -1,0 +1,108 @@
+<!doctype html><html><head><meta charset="utf-8"><title>SpookyAI Store Shot: Trends</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@500;600;700;800;900&display=block" rel="stylesheet">
+<style>
+/* Same canvas, type and palette as ios_1242x2688_v2; pink/orange "hot" accent for Trends. */
+:root{--bg:#0F0B1A;--pk:#FF2D95;--or:#FF6A00;--or2:#FF9A1F;--yl:#FFC93C;--pu:#B25AFF;--mut:#CDBFE2;--red:#FF2D55}
+*{box-sizing:border-box;margin:0}
+html,body{width:1242px;height:2688px;overflow:hidden;background:var(--bg);font-family:Inter,sans-serif;color:#fff}
+.s{position:absolute;inset:0;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(170px);opacity:.5}
+.copy{position:absolute;left:60px;right:60px;top:150px;text-align:center;z-index:10}
+.pill{display:inline-flex;align-items:center;gap:16px;padding:16px 34px;border-radius:999px;font:900 34px Inter;letter-spacing:.14em;
+ background:rgba(255,45,85,.16);border:3px solid rgba(255,45,85,.75);box-shadow:0 0 60px rgba(255,45,85,.45);margin-bottom:46px}
+.pill i{width:22px;height:22px;border-radius:50%;background:var(--red);box-shadow:0 0 0 8px rgba(255,45,85,.3),0 0 30px var(--red)}
+h1{font:800 158px/.96 'Bricolage Grotesque';letter-spacing:-.035em;text-shadow:0 10px 40px rgba(0,0,0,.4)}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--pk),var(--or) 50%,var(--yl));-webkit-background-clip:text;color:transparent;
+ filter:drop-shadow(0 0 40px rgba(255,45,149,.45))}
+p.sub{font:600 48px/1.34 Inter;color:var(--mut);margin:40px auto 0;max-width:1000px}
+
+/* Running-light frame: a frozen frame of the in-app glow. */
+.lit{position:absolute;border-radius:50px;padding:7px;
+ background:conic-gradient(from var(--a,210deg),rgba(255,255,255,.06) 0 52%,var(--c1,#FF2D95) 70%,#fff 78%,var(--c2,#FF8A00) 86%,rgba(255,255,255,.06) 94%);
+ box-shadow:0 40px 90px rgba(0,0,0,.65),0 0 90px var(--gl,rgba(255,45,149,.5))}
+.lit>.in{position:relative;width:100%;height:100%;border-radius:44px;overflow:hidden;background:#140f22}
+.lit img{width:100%;height:100%;object-fit:cover;display:block}
+.lit .ov{position:absolute;inset:auto 0 0 0;padding:90px 30px 30px;background:linear-gradient(transparent,rgba(0,0,0,.88))}
+.lit .tt{font:800 46px/1.05 'Bricolage Grotesque'}
+.tag{position:absolute;top:24px;left:24px;padding:10px 20px;border-radius:999px;font:900 24px Inter;letter-spacing:.08em}
+
+/* Phone */
+.phone{position:absolute;width:780px;height:1620px;border-radius:104px;background:#05030a;padding:24px;
+ box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 0 5px #2a2238,0 0 160px rgba(255,45,149,.35)}
+.scr{position:relative;width:100%;height:100%;border-radius:82px;overflow:hidden;background:linear-gradient(180deg,#1a0f1c,#120c1b 40%)}
+.notch{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:200px;height:58px;border-radius:30px;background:#000;z-index:9}
+.bar{position:absolute;top:112px;left:40px;right:40px;display:flex;align-items:center;gap:20px}
+.ic{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,#FF3B30,#E53935);display:grid;place-items:center;font-size:42px;box-shadow:0 8px 24px rgba(229,57,53,.5)}
+.bar .t{font:800 50px 'Bricolage Grotesque'}
+.tok{margin-left:auto;padding:14px 24px;border-radius:999px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);font:800 32px Inter}
+.hl{position:absolute;top:226px;left:40px;right:40px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.hl .h{font:800 50px/1.05 'Bricolage Grotesque';background:linear-gradient(90deg,var(--pk),var(--yl) 70%,#fff);-webkit-background-clip:text;color:transparent}
+.livebadge{flex:none;margin-top:6px;display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:999px;border:2px solid var(--red);color:var(--red);font:900 24px Inter;letter-spacing:.1em;background:rgba(255,45,85,.12)}
+.livebadge i{width:13px;height:13px;border-radius:50%;background:var(--red)}
+.try{display:flex;align-items:center;justify-content:center;gap:12px;height:84px;border-radius:26px;margin-top:20px;font:800 34px Inter;
+ background:linear-gradient(90deg,#FF2D95,#FF5FB0);box-shadow:0 14px 34px rgba(255,45,149,.5)}
+.sec{position:absolute;left:40px;right:40px;display:flex;align-items:flex-end;justify-content:space-between}
+.sec .n{font:800 42px 'Bricolage Grotesque'}
+.sec .c{padding:8px 20px;border-radius:999px;border:2px solid rgba(255,255,255,.2);font:700 24px Inter;color:var(--mut)}
+.row{position:absolute;left:40px;display:flex;gap:22px}
+.sm{width:300px;height:420px;border-radius:36px;padding:5px;background:linear-gradient(160deg,var(--c1),rgba(255,255,255,.08) 55%,var(--c2));box-shadow:0 0 40px var(--gl)}
+.sm .in{border-radius:31px}
+.sm .ov{padding:70px 20px 20px}.sm .tt{font:800 32px/1.05 'Bricolage Grotesque'}
+.sm .try{height:58px;font-size:24px;border-radius:18px;margin-top:12px}
+
+.callout{position:absolute;padding:28px 36px;border-radius:40px;background:rgba(29,22,43,.95);border:3px solid rgba(255,45,149,.65);
+ box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 70px rgba(255,45,149,.35);z-index:12}
+.orb{position:absolute;width:150px;height:150px;border-radius:50%;display:grid;place-items:center;font-size:76px;background:rgba(255,255,255,.08);
+ border:3px solid rgba(255,255,255,.18);backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.45),0 0 60px rgba(255,45,149,.35);z-index:13}
+</style></head><body>
+<section class="s">
+ <div class="glow" style="width:1100px;height:1100px;background:var(--pk);left:240px;top:1000px;opacity:.38"></div>
+ <div class="glow" style="width:900px;height:900px;background:var(--or);left:-380px;top:-260px;opacity:.42"></div>
+ <div class="glow" style="width:700px;height:700px;background:var(--pu);left:900px;top:300px;opacity:.35"></div>
+
+ <div class="copy">
+  <div class="pill"><i></i>TRENDING NOW</div>
+  <h1>Jump On<br><em>Viral Trends</em></h1>
+  <p class="sub">The looks everyone is posting, ready for your photo in one tap</p>
+ </div>
+
+ <!-- Phone with the Trends tab -->
+ <div class="phone" style="left:231px;top:850px"><div class="scr">
+  <div class="notch"></div>
+  <div class="bar"><div class="ic">🔥</div><div class="t">Trends</div><div class="tok">🔥 3 ⊕</div></div>
+  <div class="hl"><div class="h">What everyone is<br>creating right now</div><div class="livebadge"><i></i>LIVE</div></div>
+  <div class="lit" style="left:40px;top:400px;width:652px;height:800px;--a:160deg">
+   <div class="in"><img src="snow_globe.jpg">
+    <div class="ov"><div class="tt">Inside a Snow Globe</div><div class="try">✨ Try it now</div></div>
+   </div>
+  </div>
+  <div class="sec" style="top:1250px"><div class="n">Action Figure Box</div><div class="c">3 styles</div></div>
+  <div class="row" style="top:1330px">
+   <div class="lit sm" style="position:relative;--c1:#7C4DFF;--c2:#FF2D95;--gl:rgba(124,77,255,.4)"><div class="in"><img src="chibi.jpg"><div class="ov"><div class="tt">Chibi Sticker</div></div></div></div>
+   <div class="lit sm" style="position:relative;--c1:#FF2D95;--c2:#FF8A00;--gl:rgba(255,45,149,.4)"><div class="in"><img src="mini_me.jpg"><div class="ov"><div class="tt">Mini-Me</div></div></div></div>
+   <div class="lit sm" style="position:relative;--c1:#FF8A00;--c2:#7C4DFF;--gl:rgba(255,138,0,.4)"><div class="in"><img src="collector.jpg"></div></div>
+  </div>
+ </div></div>
+
+ <!-- Floating trend cards -->
+ <div class="lit" style="width:360px;height:510px;left:-24px;top:1250px;transform:rotate(-8deg);z-index:11;--c1:#FF8A00;--c2:#FFC93C;--gl:rgba(255,138,0,.5);--a:20deg">
+  <div class="in"><img src="film_flash.jpg"><span class="tag" style="left:auto;right:24px;background:var(--or);color:#fff">#Y2KFilm</span>
+   <div class="ov" style="padding-bottom:26px"><div class="tt" style="font-size:40px">90s Film Flash</div></div></div>
+ </div>
+ <div class="lit" style="width:400px;height:570px;left:870px;top:1880px;transform:rotate(9deg);z-index:11;--c1:#E53935;--c2:#FF2D95;--gl:rgba(229,57,53,.5);--a:300deg">
+  <div class="in"><img src="red_hood.jpg"><span class="tag" style="background:#E53935;color:#fff">#Holiday</span>
+   <div class="ov" style="padding-bottom:26px"><div class="tt" style="font-size:40px">Red Hood</div></div></div>
+ </div>
+
+ <div class="callout" style="right:24px;top:1500px;transform:rotate(4deg);display:flex;align-items:center;gap:20px">
+  <span style="padding:8px 16px;border-radius:999px;background:var(--pk);font:900 26px Inter;letter-spacing:.08em">NEW</span>
+  <div><div style="font:800 40px 'Bricolage Grotesque'">Fresh drops</div><div style="font:600 28px Inter;color:var(--mut);margin-top:4px">all season long</div></div>
+ </div>
+ <div class="callout" style="left:30px;top:2400px;transform:rotate(-4deg);display:flex;align-items:center;gap:20px">
+  <div style="width:110px;height:140px;border-radius:24px;overflow:hidden"><img src="pajama.jpg" style="width:100%;height:100%;object-fit:cover"></div>
+  <div><div style="font:800 40px 'Bricolage Grotesque'">📸 Your photo,<br>the trend</div><div style="font:600 28px Inter;color:var(--mut);margin-top:6px">one tap to try</div></div>
+ </div>
+ <div class="orb" style="left:46px;top:1040px;width:140px;height:140px;font-size:70px">🔥</div>
+ <div class="orb" style="left:1060px;top:1700px;width:130px;height:130px;font-size:64px">❤️</div>
+</section>
+</body></html>

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/models/halloween_prompt_data.dart';
 import '../../../../core/services/halloween_prompt_provider.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class HalloweenPromptSelector extends StatefulWidget {
   final Function(String setting, String lighting, String effect)
@@ -57,9 +58,9 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
       builder: (context, provider, child) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1D162B),
+            color: SeasonPalette.inputFill,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: SeasonPalette.text.withOpacity(0.08)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,17 +70,17 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.auto_fix_high,
-                      color: Color(0xFFB25AFF),
+                      color: SeasonPalette.highlight,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'Halloween Prompt Elements',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: SeasonPalette.text,
                         fontSize: 16,
                       ),
                     ),
@@ -89,7 +90,7 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                       icon: const Icon(Icons.shuffle, size: 16),
                       label: const Text('Randomize'),
                       style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFFB25AFF),
+                        foregroundColor: SeasonPalette.highlight,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
@@ -103,7 +104,7 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
               // SETTING Section
               _buildSection(
                 title: 'SETTING',
-                subtitle: '(rasgele seç)',
+                subtitle: '(random pick)',
                 options: HalloweenPromptData.settings,
                 selectedOption: provider.selectedSetting,
                 onOptionSelected: (option) {
@@ -111,13 +112,13 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                   _notifyParent();
                 },
                 icon: Icons.location_on_outlined,
-                color: const Color(0xFFB25AFF),
+                color: SeasonPalette.highlight,
               ),
 
               // LIGHTING Section
               _buildSection(
                 title: 'LIGHTING',
-                subtitle: '(rasgele seç)',
+                subtitle: '(random pick)',
                 options: HalloweenPromptData.lighting,
                 selectedOption: provider.selectedLighting,
                 onOptionSelected: (option) {
@@ -131,7 +132,7 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
               // EFFECTS Section
               _buildSection(
                 title: 'EFFECTS',
-                subtitle: '(rasgele seç)',
+                subtitle: '(random pick)',
                 options: HalloweenPromptData.effects,
                 selectedOption: provider.selectedEffect,
                 onOptionSelected: (option) {
@@ -180,9 +181,9 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: SeasonPalette.text,
                       fontSize: 14,
                       letterSpacing: 1.2,
                     ),
@@ -190,8 +191,8 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 11,
+                      color: SeasonPalette.text.withOpacity(0.6),
+                      fontSize: 12,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -220,12 +221,12 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                       border: Border.all(
                         color: isSelected
                             ? color
-                            : Colors.white.withOpacity(0.1),
+                            : SeasonPalette.text.withOpacity(0.1),
                         width: isSelected ? 2 : 1,
                       ),
                       color: isSelected
                           ? color.withOpacity(0.1)
-                          : Colors.white.withOpacity(0.03),
+                          : SeasonPalette.text.withOpacity(0.03),
                     ),
                     child: Row(
                       children: [
@@ -237,7 +238,7 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                             border: Border.all(
                               color: isSelected
                                   ? color
-                                  : Colors.white.withOpacity(0.3),
+                                  : SeasonPalette.text.withOpacity(0.3),
                               width: 2,
                             ),
                             color: isSelected ? color : Colors.transparent,
@@ -257,7 +258,7 @@ class _HalloweenPromptSelectorState extends State<HalloweenPromptSelector> {
                             style: TextStyle(
                               color: isSelected
                                   ? color
-                                  : Colors.white.withOpacity(0.8),
+                                  : SeasonPalette.text.withOpacity(0.8),
                               fontSize: 13,
                               fontWeight: isSelected
                                   ? FontWeight.w500

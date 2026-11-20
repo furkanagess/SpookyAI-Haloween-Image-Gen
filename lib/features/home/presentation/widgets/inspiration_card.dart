@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/ghostface_inspiration.dart';
@@ -16,16 +17,7 @@ class InspirationCard extends StatelessWidget {
         children: [
           Positioned.fill(
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: const [
-                    AppTheme.cardGradientStart,
-                    AppTheme.cardGradientEnd,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
+              decoration: BoxDecoration(color: SeasonPalette.card),
             ),
           ),
           Positioned.fill(
@@ -43,11 +35,7 @@ class InspirationCard extends StatelessWidget {
               },
             ),
           ),
-          const Positioned(
-            top: 12,
-            left: 12,
-            child: _GhostfaceBadge(),
-          ),
+          const Positioned(top: 12, left: 12, child: _GhostfaceBadge()),
           Positioned(
             left: 14,
             right: 14,
@@ -108,7 +96,11 @@ class _CardFooter extends StatelessWidget {
             ),
             Row(
               children: [
-                const Icon(Icons.favorite_border, size: 16, color: Colors.white),
+                const Icon(
+                  Icons.favorite_border,
+                  size: 16,
+                  color: Colors.white,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   item.likes,
@@ -165,16 +157,8 @@ class _LoadingPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2B1F3A), Color(0xFF141021)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Center(
-        child: CircularProgressIndicator(strokeWidth: 2.4),
-      ),
+      decoration: BoxDecoration(color: Color(0xFF2B1F3A)),
+      child: Center(child: CircularProgressIndicator(strokeWidth: 2.4)),
     );
   }
 }

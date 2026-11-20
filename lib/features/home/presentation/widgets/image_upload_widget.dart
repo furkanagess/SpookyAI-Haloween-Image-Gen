@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class ImageUploadWidget extends StatelessWidget {
   const ImageUploadWidget({
@@ -19,15 +20,10 @@ class ImageUploadWidget extends StatelessWidget {
     if (source == ImageSource.camera) {
       final status = await Permission.camera.request();
       return status.isGranted;
-    } else {
-      // Gallery/photos permission differs per platform; handle broadly
-      if (await Permission.photos.isGranted || await Permission.photos.request().isGranted) {
-        return true;
-      }
-      // Fallback to storage for older Androids
-      final storageStatus = await Permission.storage.request();
-      return storageStatus.isGranted;
     }
+    // The gallery opens the system photo picker (Android Photo Picker, iOS
+    // PHPicker), which needs no library permission.
+    return true;
   }
 
   Future<void> _pickImage(ImageSource source, BuildContext context) async {
@@ -72,8 +68,8 @@ class ImageUploadWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0F0B1A),
+        decoration: BoxDecoration(
+          color: SeasonPalette.scaffold,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SafeArea(
@@ -87,7 +83,7 @@ class ImageUploadWidget extends StatelessWidget {
                   width: 48,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8C7BA6).withOpacity(0.6),
+                    color: SeasonPalette.mutedText.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -100,15 +96,11 @@ class ImageUploadWidget extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: SeasonPalette.accent,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF6A00).withOpacity(0.3),
+                            color: SeasonPalette.accent.withOpacity(0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -125,12 +117,12 @@ class ImageUploadWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Select Image Source',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                              color: SeasonPalette.text,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -139,7 +131,7 @@ class ImageUploadWidget extends StatelessWidget {
                             'Choose how you want to add your image',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.7),
+                              color: SeasonPalette.text.withOpacity(0.7),
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -158,11 +150,7 @@ class ImageUploadWidget extends StatelessWidget {
                         icon: Icons.camera_alt_rounded,
                         label: 'Camera',
                         subtitle: 'Take a photo',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6A00), Color(0xFFFF9800)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: SeasonPalette.accent,
                         onTap: () {
                           Navigator.pop(context);
                           _pickImage(ImageSource.camera, context);
@@ -175,11 +163,7 @@ class ImageUploadWidget extends StatelessWidget {
                         icon: Icons.photo_library_rounded,
                         label: 'Gallery',
                         subtitle: 'Choose existing',
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF9C27B0), Color(0xFF673AB7)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: SeasonPalette.card,
                         onTap: () {
                           Navigator.pop(context);
                           _pickImage(ImageSource.gallery, context);
@@ -204,7 +188,7 @@ class ImageUploadWidget extends StatelessWidget {
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: SeasonPalette.text.withOpacity(0.7),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -233,172 +217,50 @@ class ImageUploadWidget extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _showImageSourceDialog(context),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          width: double.infinity,
-          height: 120,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [const Color(0xFF1D162B), const Color(0xFF2A1F3D)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: const Color(0xFFFF6A00).withOpacity(0.3),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFF6A00).withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+        borderRadius: BorderRadius.circular(24),
+        child: CustomPaint(
+          foregroundPainter: _DashedBorderPainter(
+            color: SeasonPalette.accent.withOpacity(0.55),
+            radius: 24,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+          child: Container(
+            width: double.infinity,
+            height: 140,
+            decoration: BoxDecoration(
+              color: SeasonPalette.accent.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Icon section with modern design
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6A00).withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.add_photo_alternate_outlined,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-                // Text section with better hierarchy
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Upload Image',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'Tap to select from camera or gallery',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withOpacity(0.7),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Quick action indicators
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF6A00).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: const Color(0xFFFF6A00).withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.camera_alt,
-                                  size: 10,
-                                  color: const Color(0xFFFF6A00),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Camera',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: const Color(0xFFFF6A00),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF9C27B0).withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: const Color(0xFF9C27B0).withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.photo_library,
-                                  size: 10,
-                                  color: const Color(0xFF9C27B0),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'Gallery',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: const Color(0xFF9C27B0),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Arrow indicator
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    color: SeasonPalette.accent.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white.withOpacity(0.6),
-                    size: 14,
+                    Icons.add_photo_alternate_rounded,
+                    color: SeasonPalette.accent,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Add a photo',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Camera or gallery · JPG, PNG',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: SeasonPalette.text.withOpacity(0.5),
                   ),
                 ),
               ],
@@ -412,127 +274,154 @@ class ImageUploadWidget extends StatelessWidget {
   Widget _buildImagePreview(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 120,
+      height: 180,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFF00E676).withOpacity(0.5),
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF00E676).withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: SeasonPalette.text.withOpacity(0.12)),
       ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(18),
-            child: Image.memory(
-              uploadedImage!,
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(23),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.memory(uploadedImage!, fit: BoxFit.cover),
+            // Bottom scrim for legibility of the controls.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.transparent),
+              ),
             ),
-          ),
-
-          // Modern overlay with glassmorphism effect
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.3),
+            Positioned(
+              left: 12,
+              bottom: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle_rounded,
+                      size: 14,
+                      color: Color(0xFF4ADE80),
+                    ),
+                    SizedBox(width: 6),
+                    Text(
+                      'Photo ready',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-          ),
-
-          // Modern remove button
-          Positioned(
-            top: 10,
-            right: 10,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onImageRemoved,
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.close_rounded,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Modern success indicator
-          Positioned(
-            bottom: 10,
-            left: 10,
-            right: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withOpacity(0.9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF00E676).withOpacity(0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            Positioned(
+              right: 12,
+              bottom: 12,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: Colors.white,
-                    size: 14,
+                  _PreviewAction(
+                    icon: Icons.swap_horiz_rounded,
+                    label: 'Change',
+                    onTap: () => _showImageSourceDialog(context),
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Ready to transform',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  const SizedBox(width: 8),
+                  _PreviewAction(
+                    icon: Icons.delete_outline_rounded,
+                    label: 'Remove',
+                    onTap: onImageRemoved,
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _PreviewAction extends StatelessWidget {
+  const _PreviewAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.55),
+            borderRadius: BorderRadius.circular(17),
+            border: Border.all(color: Colors.white.withOpacity(0.18)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 16, color: Colors.white),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({required this.color, required this.radius});
+
+  final Color color;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)),
+      );
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 7), paint);
+        d += 12;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashedBorderPainter old) =>
+      old.color != color || old.radius != radius;
 }
 
 class _ImageSourceButton extends StatelessWidget {
@@ -540,7 +429,7 @@ class _ImageSourceButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
-    this.gradient,
+    this.color,
     this.subtitle,
   });
 
@@ -548,10 +437,11 @@ class _ImageSourceButton extends StatelessWidget {
   final String label;
   final String? subtitle;
   final VoidCallback onTap;
-  final Gradient? gradient;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final fg = SeasonPalette.onColor(color ?? SeasonPalette.card);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -560,22 +450,12 @@ class _ImageSourceButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient:
-                gradient ??
-                LinearGradient(
-                  colors: [const Color(0xFF352046), const Color(0xFF2A1F3D)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+            color: color ?? SeasonPalette.card,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+            border: Border.all(color: fg.withOpacity(0.2), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: (gradient?.colors.first ?? const Color(0xFF352046))
-                    .withOpacity(0.3),
+                color: (color ?? SeasonPalette.card).withOpacity(0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 6),
               ),
@@ -589,22 +469,19 @@ class _ImageSourceButton extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: fg.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1,
-                  ),
+                  border: Border.all(color: fg.withOpacity(0.2), width: 1),
                 ),
-                child: Icon(icon, color: Colors.white, size: 28),
+                child: Icon(icon, color: fg, size: 28),
               ),
               const SizedBox(height: 16),
 
               // Title
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: fg,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
@@ -618,7 +495,7 @@ class _ImageSourceButton extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
+                    color: fg.withOpacity(0.8),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),

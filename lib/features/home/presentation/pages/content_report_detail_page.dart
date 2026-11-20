@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../../core/services/content_reporting_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 /// Detail page for content reporting with comprehensive reporting options
 /// Required by Google Play Console AI-Generated Content Policy
@@ -123,7 +124,7 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0B1A),
+      backgroundColor: SeasonPalette.scaffold,
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
@@ -132,26 +133,26 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
             children: [
               // Default App Bar
               AppBar(
-                backgroundColor: const Color(0xFF0F0B1A),
-                foregroundColor: Colors.white,
-                title: const Text(
+                backgroundColor: SeasonPalette.scaffold,
+                foregroundColor: SeasonPalette.text,
+                title: Text(
                   'Report Content',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: SeasonPalette.text,
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 actions: [
                   if (_isSubmitting)
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.all(16.0),
                       child: SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFFFF6A00),
+                          color: SeasonPalette.accent,
                         ),
                       ),
                     ),
@@ -212,15 +213,11 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: SeasonPalette.accent,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF6A00).withOpacity(0.3),
+            color: SeasonPalette.accent.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -276,10 +273,10 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Content Being Reported',
           style: TextStyle(
-            color: Colors.white,
+            color: SeasonPalette.text,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -289,25 +286,28 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF2A1F3D),
+            color: SeasonPalette.card,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            border: Border.all(
+              color: SeasonPalette.text.withOpacity(0.1),
+              width: 1,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.edit_note_rounded,
-                    color: Color(0xFFFF6A00),
+                    color: SeasonPalette.accent,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Prompt:',
                     style: TextStyle(
-                      color: Color(0xFFFF6A00),
+                      color: SeasonPalette.accent,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -317,8 +317,8 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
               const SizedBox(height: 12),
               Text(
                 widget.prompt,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: SeasonPalette.text,
                   fontSize: 16,
                   height: 1.5,
                 ),
@@ -334,10 +334,10 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'What type of content is this?',
           style: TextStyle(
-            color: Colors.white,
+            color: SeasonPalette.text,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -372,19 +372,19 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFFFF6A00).withOpacity(0.1)
-                : const Color(0xFF2A1F3D),
+                ? SeasonPalette.accent.withOpacity(0.1)
+                : SeasonPalette.card,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFFFF6A00)
-                  : Colors.white.withOpacity(0.1),
+                  ? SeasonPalette.accent
+                  : SeasonPalette.text.withOpacity(0.1),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFFFF6A00).withOpacity(0.2),
+                      color: SeasonPalette.accent.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -398,13 +398,11 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
                 height: 28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? const Color(0xFFFF6A00)
-                      : Colors.transparent,
+                  color: isSelected ? SeasonPalette.accent : Colors.transparent,
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFF6A00)
-                        : Colors.white.withOpacity(0.3),
+                        ? SeasonPalette.accent
+                        : SeasonPalette.text.withOpacity(0.3),
                     width: 2,
                   ),
                 ),
@@ -419,8 +417,8 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
                   children: [
                     Text(
                       category.displayName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: SeasonPalette.text,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -429,7 +427,7 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
                     Text(
                       category.description,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: SeasonPalette.text.withOpacity(0.7),
                         fontSize: 14,
                         height: 1.3,
                       ),
@@ -448,10 +446,10 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'What is the specific issue?',
           style: TextStyle(
-            color: Colors.white,
+            color: SeasonPalette.text,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -487,13 +485,13 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFFFF6A00).withOpacity(0.1)
-                : const Color(0xFF2A1F3D),
+                ? SeasonPalette.accent.withOpacity(0.1)
+                : SeasonPalette.card,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFFFF6A00)
-                  : Colors.white.withOpacity(0.1),
+                  ? SeasonPalette.accent
+                  : SeasonPalette.text.withOpacity(0.1),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -504,13 +502,11 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? const Color(0xFFFF6A00)
-                      : Colors.transparent,
+                  color: isSelected ? SeasonPalette.accent : Colors.transparent,
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFF6A00)
-                        : Colors.white.withOpacity(0.3),
+                        ? SeasonPalette.accent
+                        : SeasonPalette.text.withOpacity(0.3),
                     width: 2,
                   ),
                 ),
@@ -522,8 +518,8 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
               Expanded(
                 child: Text(
                   reason.displayName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: SeasonPalette.text,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -540,10 +536,10 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Additional Details (Optional)',
           style: TextStyle(
-            color: Colors.white,
+            color: SeasonPalette.text,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -552,33 +548,33 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
         TextField(
           controller: _detailsController,
           maxLines: 4,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: SeasonPalette.text),
           decoration: InputDecoration(
             hintText:
                 'Provide any additional context that might help us understand your concern...',
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: SeasonPalette.text.withOpacity(0.5),
               fontSize: 14,
             ),
             filled: true,
-            fillColor: const Color(0xFF2A1F3D),
+            fillColor: SeasonPalette.card,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.1),
+                color: SeasonPalette.text.withOpacity(0.1),
                 width: 1,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.1),
+                color: SeasonPalette.text.withOpacity(0.1),
                 width: 1,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Color(0xFFFF6A00), width: 2),
+              borderSide: BorderSide(color: SeasonPalette.accent, width: 2),
             ),
             contentPadding: const EdgeInsets.all(20),
           ),
@@ -592,10 +588,10 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A1F3D).withOpacity(0.5),
+        color: SeasonPalette.card.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFF6A00).withOpacity(0.3),
+          color: SeasonPalette.accent.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -604,16 +600,12 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.info_outline,
-                color: Color(0xFFFF6A00),
-                size: 24,
-              ),
+              Icon(Icons.info_outline, color: SeasonPalette.accent, size: 24),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Our Commitment',
                 style: TextStyle(
-                  color: Color(0xFFFF6A00),
+                  color: SeasonPalette.accent,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -624,7 +616,7 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
           Text(
             'We take content moderation seriously. All reports are reviewed by our team, and appropriate action will be taken in accordance with our community guidelines. Your report helps us maintain a safe environment for all users.',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: SeasonPalette.text.withOpacity(0.8),
               fontSize: 16,
               height: 1.5,
             ),
@@ -643,13 +635,13 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
           child: FilledButton(
             onPressed: _isSubmitting ? null : _submitReport,
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFF6A00),
+              backgroundColor: SeasonPalette.accent,
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               elevation: 8,
-              shadowColor: const Color(0xFFFF6A00).withOpacity(0.3),
+              shadowColor: SeasonPalette.accent.withOpacity(0.3),
             ),
             child: _isSubmitting
                 ? const SizedBox(
@@ -686,7 +678,7 @@ class _ContentReportDetailPageState extends State<ContentReportDetailPage>
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: SeasonPalette.text.withOpacity(0.7),
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),

@@ -6,6 +6,24 @@ class PromptInputProvider extends ChangeNotifier {
   int _characterCount = 0;
   int _maxLength = 500;
 
+  // Inline validation feedback (shake + red footer on the prompt field)
+  String? _issueMessage;
+  int _issueTick = 0;
+  String? get issueMessage => _issueMessage;
+  int get issueTick => _issueTick;
+
+  void flagIssue(String message) {
+    _issueMessage = message;
+    _issueTick++;
+    notifyListeners();
+  }
+
+  void clearIssue() {
+    if (_issueMessage == null) return;
+    _issueMessage = null;
+    notifyListeners();
+  }
+
   // Getters
   String get text => _text;
   int get characterCount => _characterCount;
@@ -24,6 +42,7 @@ class PromptInputProvider extends ChangeNotifier {
 
   // Update text
   void updateText(String text) {
+    _issueMessage = null;
     _text = text;
     _characterCount = text.length;
     notifyListeners();

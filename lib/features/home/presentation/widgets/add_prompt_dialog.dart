@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/add_prompt_provider.dart';
 import '../../data/models/user_prompt.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class AddPromptDialog extends StatefulWidget {
   final UserPrompt? existingPrompt;
@@ -81,7 +82,7 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
     return Consumer<AddPromptProvider>(
       builder: (context, provider, child) {
         return Dialog(
-          backgroundColor: const Color(0xFF1D162B),
+          backgroundColor: SeasonPalette.inputFill,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -96,9 +97,12 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                 // Header
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Color(0xFF8C7BA6), width: 0.5),
+                      bottom: BorderSide(
+                        color: SeasonPalette.mutedText,
+                        width: 0.5,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -107,11 +111,7 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          color: SeasonPalette.accent,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
@@ -124,16 +124,17 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                       Expanded(
                         child: Text(
                           isEditing ? 'Edit Prompt' : 'Add New Prompt',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: SeasonPalette.text,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Close',
                         onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close, color: Color(0xFF8C7BA6)),
+                        icon: Icon(Icons.close, color: SeasonPalette.mutedText),
                       ),
                     ],
                   ),
@@ -151,32 +152,32 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                           // Title Field
                           TextFormField(
                             controller: _titleController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: SeasonPalette.text),
                             decoration: InputDecoration(
                               labelText: 'Prompt Title',
-                              labelStyle: const TextStyle(
-                                color: Color(0xFF8C7BA6),
+                              labelStyle: TextStyle(
+                                color: SeasonPalette.mutedText,
                               ),
                               hintText: 'Enter a descriptive title...',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF8C7BA6),
+                              hintStyle: TextStyle(
+                                color: SeasonPalette.mutedText,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF8C7BA6),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.mutedText,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF8C7BA6),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.mutedText,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFFF6A00),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.accent,
                                 ),
                               ),
                             ),
@@ -193,33 +194,33 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                           // Prompt Field
                           TextFormField(
                             controller: _promptController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: SeasonPalette.text),
                             maxLines: 4,
                             decoration: InputDecoration(
                               labelText: 'Prompt Text',
-                              labelStyle: const TextStyle(
-                                color: Color(0xFF8C7BA6),
+                              labelStyle: TextStyle(
+                                color: SeasonPalette.mutedText,
                               ),
                               hintText: 'Describe your prompt in detail...',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF8C7BA6),
+                              hintStyle: TextStyle(
+                                color: SeasonPalette.mutedText,
                               ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF8C7BA6),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.mutedText,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF8C7BA6),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.mutedText,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFFF6A00),
+                                borderSide: BorderSide(
+                                  color: SeasonPalette.accent,
                                 ),
                               ),
                             ),
@@ -244,9 +245,12 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                 // Action Buttons
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
-                      top: BorderSide(color: Color(0xFF8C7BA6), width: 0.5),
+                      top: BorderSide(
+                        color: SeasonPalette.mutedText,
+                        width: 0.5,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -257,14 +261,14 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                               ? null
                               : () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF8C7BA6)),
+                            side: BorderSide(color: SeasonPalette.mutedText),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Cancel',
-                            style: TextStyle(color: Color(0xFF8C7BA6)),
+                            style: TextStyle(color: SeasonPalette.mutedText),
                           ),
                         ),
                       ),
@@ -273,7 +277,7 @@ class _AddPromptDialogState extends State<AddPromptDialog> {
                         child: ElevatedButton(
                           onPressed: provider.isLoading ? null : _savePrompt,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6A00),
+                            backgroundColor: SeasonPalette.accent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

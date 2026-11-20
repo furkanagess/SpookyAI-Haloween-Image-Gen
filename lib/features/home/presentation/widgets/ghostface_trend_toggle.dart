@@ -1,3 +1,4 @@
+import '../../../../core/theme/seasons/season_palette.dart';
 // COMMENTED OUT: Ghostface Trend Toggle widget disabled
 // import 'package:flutter/material.dart';
 
@@ -22,14 +23,14 @@
 //       children: [
 //         Container(
 //           decoration: BoxDecoration(
-//             color: const Color(0xFF1D162B),
+//             color: SeasonPalette.inputFill,
 //             borderRadius: BorderRadius.circular(12),
 //             border: Border.all(color: Colors.white.withOpacity(0.08)),
 //           ),
 //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
 //           child: Row(
 //             children: [
-//               const Icon(Icons.trending_up_rounded, color: Color(0xFFB25AFF)),
+//               const Icon(Icons.trending_up_rounded, color: SeasonPalette.highlight),
 //               const SizedBox(width: 10),
 //               const Expanded(
 //                 child: Text(
@@ -42,7 +43,7 @@
 //               ),
 //               Switch(
 //                 value: enabled,
-//                 activeColor: const Color(0xFFB25AFF),
+//                 activeColor: SeasonPalette.highlight,
 //                 onChanged: onEnabledChanged,
 //               ),
 //             ],
@@ -55,7 +56,7 @@
 //               children: [
 //                 const Icon(
 //                   Icons.image_rounded,
-//                   color: Color(0xFF8C7BA6),
+//                   color: SeasonPalette.mutedText,
 //                   size: 18,
 //                 ),
 //                 const SizedBox(width: 8),
@@ -67,7 +68,7 @@
 //                 ),
 //                 Switch(
 //                   value: usePresetImage,
-//                   activeColor: const Color(0xFFB25AFF),
+//                   activeColor: SeasonPalette.highlight,
 //                   onChanged: onUsePresetChanged,
 //                 ),
 //               ],

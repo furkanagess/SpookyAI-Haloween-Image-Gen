@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/token_provider.dart';
+import '../theme/seasons/season_palette.dart';
 
 class TokenDisplayWidget extends StatelessWidget {
   final VoidCallback? onTap;
@@ -30,26 +31,26 @@ class TokenDisplayWidget extends StatelessWidget {
             child: Container(
               padding: padding,
               decoration: BoxDecoration(
-                color: const Color(0xFF1D162B),
+                color: SeasonPalette.inputFill,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.12)),
+                border: Border.all(color: SeasonPalette.text.withOpacity(0.12)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.local_fire_department,
-                    color: Color(0xFFFF6A00),
+                    color: SeasonPalette.accent,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   if (tokenProvider.isLoading)
-                    const SizedBox(
+                    SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Color(0xFFFF6A00),
+                        color: SeasonPalette.accent,
                       ),
                     )
                   else
@@ -61,14 +62,14 @@ class TokenDisplayWidget extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: fontSize,
-                        color: Colors.white,
+                        color: SeasonPalette.text,
                       ),
                     ),
                   if (showAddIcon) ...[
                     const SizedBox(width: 10),
-                    const Icon(
+                    Icon(
                       Icons.add_circle_outline,
-                      color: Color(0xFFFF6A00),
+                      color: SeasonPalette.accent,
                       size: 20,
                     ),
                   ],
@@ -103,7 +104,7 @@ class TokenBalanceIndicator extends StatelessWidget {
           padding: padding,
           decoration: BoxDecoration(
             color: tokenProvider.balance > 0
-                ? const Color(0xFFB25AFF)
+                ? SeasonPalette.highlight
                 : Colors.red,
             borderRadius: BorderRadius.circular(20),
           ),

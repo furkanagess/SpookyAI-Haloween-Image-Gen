@@ -1,1 +1,1 @@
-enum GenerationMode { text, image }
+enum GenerationMode { text, image, video }

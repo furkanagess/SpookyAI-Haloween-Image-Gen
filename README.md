@@ -296,7 +296,7 @@
     <a href="https://apps.apple.com/app/spookyai" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: bold;">
       🍎 App Store
     </a>
-    <a href="https://play.google.com/store/apps/details?id=com.spookyai.app" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: bold;">
+    <a href="https://play.google.com/store/apps/details?id=com.furkanages.spookyai" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: bold;">
       🤖 Google Play
     </a>
     <a href="https://github.com/furkanagess/SpookyAI" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 15px 25px; border-radius: 10px; text-decoration: none; font-weight: bold;">

@@ -1,0 +1,112 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "spookyai-app-ratings",
+          "appId": "1:981931455672:android:09a0907cc293a48825304d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "spookyai-app-ratings",
+          "appId": "1:981931455672:ios:81d6d9ed0a155f5c25304d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "spookyai-app-ratings",
+          "configurations": {
+            "android": "1:981931455672:android:09a0907cc293a48825304d",
+            "ios": "1:981931455672:ios:81d6d9ed0a155f5c25304d"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": [
+    {
+      "site": "spookyai-app",
+      "public": "website/public",
+      "ignore": [
+        "**/.*"
+      ],
+      "cleanUrls": true,
+      "trailingSlash": true,
+      "redirects": [
+        {
+          "source": "/privacy-policy",
+          "destination": "/privacy/",
+          "type": 301
+        },
+        {
+          "source": "/terms-of-use",
+          "destination": "/terms/",
+          "type": 301
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(css|js|svg|png|jpg|webp)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=604800"
+            }
+          ]
+        },
+        {
+          "source": "/media/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=2592000"
+            }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "strict-origin-when-cross-origin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "site": "spookyai-app-ratings",
+      "public": "website/redirect",
+      "redirects": [
+        {
+          "source": "/:path*",
+          "destination": "https://spookyai-app.web.app/:path",
+          "type": 301
+        }
+      ]
+    }
+  ]
+}

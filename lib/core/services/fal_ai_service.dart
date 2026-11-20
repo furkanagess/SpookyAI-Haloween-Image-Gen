@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'analytics_service.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -7,444 +9,386 @@ import 'package:path_provider/path_provider.dart';
 import 'package:gal/gal.dart';
 import '../config/environment_config.dart';
 
-/// FLUX Schnell Style Options
-enum FluxSchnellStyle {
-  realistic('realistic', 'Photorealistic style'),
-  artistic('artistic', 'Artistic style'),
-  cinematic('cinematic', 'Cinematic style'),
-  digital('digital', 'Digital art style'),
-  painting('painting', 'Painting style'),
-  sketch('sketch', 'Sketch style'),
-  anime('anime', 'Anime style'),
-  cartoon('cartoon', 'Cartoon style'),
-  fantasy('fantasy', 'Fantasy style'),
-  horror('horror', 'Horror style'),
-  sciFi('sci-fi', 'Science fiction style'),
-  vintage('vintage', 'Vintage style'),
-  modern('modern', 'Modern style'),
-  abstract('abstract', 'Abstract style'),
-  minimalist('minimalist', 'Minimalist style');
-
-  const FluxSchnellStyle(this.value, this.description);
-  final String value;
-  final String description;
-}
-
-/// FLUX Schnell Quality Options
-enum FluxSchnellQuality {
-  fast('fast', 'Fast generation, lower quality'),
-  balanced('balanced', 'Balanced speed and quality'),
-  high('high', 'High quality, slower generation'),
-  ultra('ultra', 'Ultra high quality, slowest generation');
-
-  const FluxSchnellQuality(this.value, this.description);
-  final String value;
-  final String description;
-}
-
 class FalAiService {
-  // FAL AI FLUX Schnell - Text to Image Model
-  static const String _baseUrl = 'https://queue.fal.run/fal-ai/flux/schnell';
-  static const String _i2iBaseUrl =
-      'https://queue.fal.run/fal-ai/image-editing/scene-composition';
+  // Text to Image: OpenAI GPT Image 2 on fal.
+  static const String _t2iModel = 'openai/gpt-image-2';
+  static String get _t2iUrl => '${EnvironmentConfig.falQueueBase}/$_t2iModel';
+  // Image to Image: OpenAI GPT Image 2 edit on fal. Takes one or more input
+  // images plus an instruction; no strength, steps or negative prompt.
+  static const String _i2iModel = 'openai/gpt-image-2/edit';
+  static String get _i2iUrl => '${EnvironmentConfig.falQueueBase}/$_i2iModel';
 
-  // FLUX Schnell Model Configuration
-  static const Map<String, dynamic> _fluxSchnellConfig = {
-    'model': 'fal-ai/flux/schnell',
-    'description': 'Fast text-to-image generation with high quality',
-    'maxSteps': 4,
-    'defaultSteps': 4,
-    'supportedSizes': ['square_hd', 'portrait_4_3', 'landscape_16_9'],
-    'defaultSize': 'square_hd',
-    'guidanceScale': 6.0,
-    'outputFormats': ['jpeg', 'png'],
-    'defaultFormat': 'jpeg',
-  };
+  /// Both image models run at medium quality and the 512x512 preset
+  /// (`square`). Quality and size drive cost; fixing them keeps it flat.
+  static const String imageQuality = 'medium';
+  static const String imageSize = 'square';
 
-  /// Get API key from environment variables
-  static String get _apiKey {
-    final apiKey = EnvironmentConfig.falAiApiKey;
-    if (apiKey == null || apiKey.isEmpty) {
-      throw FalAiException(
-        'FAL_AI_API_KEY not found in environment variables. '
-        'Please add FAL_AI_API_KEY to your .env file.',
-      );
-    }
-    return apiKey;
+  /// Kept for the image-to-image call sites and tests.
+  static const String i2iQuality = imageQuality;
+  static const String i2iImageSize = imageSize;
+
+  // Image to Video: MiniMax H3 Max on fal (~$0.60 per 5 s 1080P clip).
+  static const String _i2vModel = 'minimax/h3-max/image-to-video';
+  static String get _i2vUrl => '${EnvironmentConfig.falQueueBase}/$_i2vModel';
+
+  /// Fixed clip length and resolution keep the cost per video predictable.
+  static const int videoSeconds = 5;
+  static const String videoResolution = '1080P';
+
+  /// HTTP client for text-to-image; replaceable in tests.
+  static http.Client httpClient = http.Client();
+
+  static void _debugPrompt(String mode, String prompt) {
+    if (!kDebugMode) return;
+    stdout.writeln('\n========== FAL.AI $mode PROMPT ==========');
+    stdout.writeln(prompt);
+    stdout.writeln('========== END FAL.AI PROMPT ==========\n');
   }
 
-  /// Get FLUX Schnell model configuration
-  static Map<String, dynamic> get fluxSchnellConfig => _fluxSchnellConfig;
+  /// Auth headers for the active mode (direct key or proxy token).
+  static Map<String, String> _auth() {
+    try {
+      return EnvironmentConfig.falAuthHeaders();
+    } on StateError catch (e) {
+      throw FalAiException('FAL_AI_API_KEY not configured: ${e.message}');
+    }
+  }
 
-  /// Get supported styles for FLUX Schnell
-  static List<FluxSchnellStyle> get supportedStyles => FluxSchnellStyle.values;
+  /// Request body for GPT Image 2 text-to-image. Pure and testable.
+  ///
+  /// Always medium quality, the 512x512 `square` preset and one image, so a
+  /// generation costs the same every time. Safety checking stays on.
+  @visibleForTesting
+  static Map<String, dynamic> buildTextToImageBody({
+    required String prompt,
+    String outputFormat = 'jpeg',
+  }) {
+    final format = const {'jpeg', 'png', 'webp'}.contains(outputFormat)
+        ? outputFormat
+        : 'jpeg';
+    return {
+      'prompt': prompt,
+      'image_size': imageSize,
+      'quality': imageQuality,
+      'num_images': 1,
+      'output_format': format,
+      if (format != 'png') 'output_compression': 90,
+      'background': 'opaque',
+      'enable_safety_checker': true,
+    };
+  }
 
-  /// Get supported quality levels for FLUX Schnell
-  static List<FluxSchnellQuality> get supportedQualities =>
-      FluxSchnellQuality.values;
-
-  /// Get model information
-  static String get modelInfo =>
-      'FLUX Schnell - Fast text-to-image generation with high quality';
-
-  /// Check if FLUX Schnell is available
-  static bool get isFluxSchnellAvailable => true;
-
-  /// Generate image using FAL AI FLUX Schnell model with enhanced configuration
+  /// Text to Image with GPT Image 2.
+  ///
+  /// [prompt] is the final prompt from `PromptEngine.textToImage`. The model
+  /// takes no negative prompt, so constraints are worded positively inside it.
   static Future<FalAiResult> generateImage({
     required String prompt,
-    int numInferenceSteps = 4, // FLUX Schnell default
-    int numImages = 1,
-    String imageSize = 'square_hd', // FLUX Schnell default
-    double guidanceScale = 6.0, // FLUX Schnell default
-    int? seed,
-    bool enableSafetyChecker = true,
-    String outputFormat = 'jpeg', // FLUX Schnell default
-    bool syncMode = false,
+    String outputFormat = 'jpeg',
     bool Function()? isCancelled,
-    FluxSchnellStyle? style, // Enhanced style support
-    FluxSchnellQuality? quality, // Enhanced quality support
+    Duration timeout = const Duration(seconds: 120),
   }) async {
     try {
-      // Validate prompt
-      final String trimmedPrompt = prompt.trim();
-      if (trimmedPrompt.isEmpty) {
+      final String text = prompt.trim();
+      if (text.length < 3) {
         throw FalAiException('Prompt cannot be empty');
       }
-
-      // Enhance prompt with FLUX Schnell optimizations
-      final String enhancedPrompt = _enhancePromptForFluxSchnell(
-        trimmedPrompt,
-        style: style,
-        quality: quality,
+      _debugPrompt('text-to-image', text);
+      final json = await _runQueue(
+        _t2iUrl,
+        buildTextToImageBody(prompt: text, outputFormat: outputFormat),
+        isCancelled: isCancelled,
+        timeout: timeout,
       );
-
-      // Normalize image size to supported enum values for FAL API
-      final String normalizedImageSize = _normalizeImageSize(imageSize);
-
-      // Submit the generation request
-      final submitResponse = await http.post(
-        Uri.parse(_baseUrl),
-        headers: {
-          'Authorization': 'Key $_apiKey',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'prompt': enhancedPrompt, // Use enhanced prompt
-          'num_inference_steps': numInferenceSteps,
-          'num_images': numImages,
-          'image_size': normalizedImageSize,
-          'guidance_scale': guidanceScale,
-          'output_format': outputFormat,
-          'sync_mode': syncMode,
-          if (seed != null) 'seed': seed,
-          'enable_safety_checker': enableSafetyChecker,
-          // FLUX Schnell specific parameters
-          'model': 'fal-ai/flux/schnell',
-          'style': style?.value ?? 'realistic',
-          'quality': quality?.value ?? 'balanced',
-        }),
-      );
-
-      // Accept 200/201 immediate responses and 202 Accepted queued responses
-      if (submitResponse.statusCode != 200 &&
-          submitResponse.statusCode != 201 &&
-          submitResponse.statusCode != 202) {
-        throw FalAiException(
-          'Failed to submit generation: ${submitResponse.statusCode} - ${submitResponse.body}',
-        );
-      }
-
-      // Log successful submission
-      debugPrint('🎃 FAL: Text-to-image generation submitted successfully');
-      debugPrint('🎃 FAL: Response status: ${submitResponse.statusCode}');
-      debugPrint('🎃 FAL: Response body: ${submitResponse.body}');
-
-      Map<String, dynamic> submitData = {};
-      if (submitResponse.body.isNotEmpty) {
-        try {
-          submitData = jsonDecode(submitResponse.body) as Map<String, dynamic>;
-        } catch (_) {
-          // If response is not JSON, proceed with headers-based fallback
-        }
-      }
-
-      // Check if we have a direct response (sync mode)
-      if (submitData.containsKey('images') ||
-          submitData.containsKey('output')) {
-        return FalAiResult.fromJson(submitData);
-      }
-
-      // If async mode, get the request_id and poll for results
-      String? requestId = submitData['request_id'] as String?;
-
-      // Some implementations may provide explicit URLs
-      String? statusUrl = submitData['status_url'] as String?;
-      String? resultUrl = submitData['result_url'] as String?;
-
-      // If body did not include request id, try to infer from Location header
-      if (requestId == null) {
-        final location = submitResponse.headers['location'];
-        if (location != null && location.contains('/requests/')) {
-          // Extract the last segment as request id
-          final parts = location.split('/');
-          requestId = parts.isNotEmpty ? parts.last : null;
-          statusUrl ??= location.endsWith('/status')
-              ? location
-              : '$location/status';
-          resultUrl ??= location.endsWith('/status')
-              ? location.replaceFirst('/status', '')
-              : location;
-        }
-      }
-
-      if (requestId == null && statusUrl == null && resultUrl == null) {
-        throw FalAiException('No request_id or URLs provided by server');
-      }
-
-      // Build default URLs if only requestId was provided
-      statusUrl ??= '$_baseUrl/requests/$requestId/status';
-      resultUrl ??= '$_baseUrl/requests/$requestId';
-
-      // Poll for results with improved error handling
-      for (var i = 0; i < 30; i++) {
-        debugPrint('🎃 FAL: Polling attempt ${i + 1}/30');
-
-        // Check for cancellation
-        if (isCancelled != null && isCancelled()) {
-          debugPrint('🎃 FAL: Generation cancelled by user');
-          throw FalAiException('Generation cancelled by user');
-        }
-
-        await Future.delayed(const Duration(seconds: 1));
-
-        try {
-          final statusResponse = await http.get(
-            Uri.parse(statusUrl),
-            headers: {'Authorization': 'Key $_apiKey'},
-          );
-
-          if (statusResponse.statusCode != 200) {
-            debugPrint(
-              '🎃 FAL: Status check failed: ${statusResponse.statusCode} - ${statusResponse.body}',
-            );
-            throw FalAiException(
-              'Failed to get status: ${statusResponse.statusCode} - ${statusResponse.body}',
-            );
-          }
-
-          final statusData = jsonDecode(statusResponse.body);
-          final status = statusData['status'] as String?;
-
-          debugPrint('🎃 FAL: Status: $status');
-
-          if (status == 'COMPLETED' ||
-              status == 'completed' ||
-              status == 'DONE') {
-            debugPrint('🎃 FAL: Generation completed, fetching result...');
-
-            // Get the final result - use status URL for result
-            final resultResponse = await http.get(
-              Uri.parse(statusUrl), // Use status URL instead of result URL
-              headers: {'Authorization': 'Key $_apiKey'},
-            );
-
-            if (resultResponse.statusCode != 200) {
-              debugPrint(
-                '🎃 FAL: Result fetch failed: ${resultResponse.statusCode} - ${resultResponse.body}',
-              );
-              throw FalAiException(
-                'Failed to get result: ${resultResponse.statusCode} - ${resultResponse.body}',
-              );
-            }
-
-            final resultData = jsonDecode(resultResponse.body);
-            debugPrint('🎃 FAL: Result data received successfully');
-
-            // FLUX Schnell specific response parsing
-            final result = await FalAiResult.fromFluxSchnellJson(
-              resultData,
-              enhancedPrompt,
-            );
-            debugPrint('🎃 FAL: Parsed result: ${result.images.length} images');
-            return result;
-          } else if (status == 'FAILED' ||
-              status == 'failed' ||
-              status == 'ERROR') {
-            final error = statusData['error'] ?? 'Unknown error';
-            debugPrint('🎃 FAL: Generation failed: $error');
-            throw FalAiException('Generation failed: $error');
-          }
-        } catch (e) {
-          debugPrint('🎃 FAL: Polling error: $e');
-          if (i == 29) {
-            // Last attempt
-            rethrow;
-          }
-          // Continue to next attempt
-        }
-      }
-
-      throw FalAiException('Generation timeout - took too long');
+      return _parseResult(json, text);
     } catch (e) {
-      if (e is FalAiException) {
-        rethrow;
-      }
+      if (e is FalAiException) rethrow;
       throw FalAiException('Error generating image: $e');
     }
   }
 
-  /// Generate image-from-image using FAL AI Scene Composition model
+  /// Request body for GPT Image 2 edit. Pure and testable.
+  ///
+  /// The photo travels as a base64 data URI in `image_urls`. Safety checking
+  /// stays on, the output size is fixed and one image is requested, so a
+  /// generation always costs the same.
+  @visibleForTesting
+  static Map<String, dynamic> buildImageToImageBody({
+    required String prompt,
+    required String imageDataUri,
+    String imageSize = i2iImageSize,
+    String quality = i2iQuality,
+    String outputFormat = 'jpeg',
+  }) {
+    const sizes = {
+      'square_hd',
+      'square',
+      'portrait_4_3',
+      'portrait_16_9',
+      'landscape_4_3',
+      'landscape_16_9',
+      'auto',
+    };
+    final format = const {'jpeg', 'png', 'webp'}.contains(outputFormat)
+        ? outputFormat
+        : 'jpeg';
+    return {
+      'prompt': prompt,
+      'image_urls': [imageDataUri],
+      'image_size': sizes.contains(imageSize) ? imageSize : i2iImageSize,
+      'quality': const {'low', 'medium', 'high'}.contains(quality)
+          ? quality
+          : i2iQuality,
+      'num_images': 1,
+      'output_format': format,
+      if (format != 'png') 'output_compression': 90,
+      'background': 'opaque',
+      'enable_safety_checker': true,
+    };
+  }
+
+  /// Image to Image with GPT Image 2 edit.
+  ///
+  /// [prompt] is the final prompt from `PromptEngine.imageToImage`.
   static Future<FalAiResult> generateImageFromImage({
     required String prompt,
     required Uint8List imageBytes,
-    double imageStrength =
-        0.8, // From screenshot - higher strength for scene composition
-    int numInferenceSteps = 4, // From screenshot
-    double guidanceScale = 6.0, // From screenshot
-    int? seed,
-    bool enableSafetyChecker = true, // From screenshot
-    String outputFormat = 'jpeg', // From screenshot
+    String quality = i2iQuality,
+    String imageSize = i2iImageSize,
+    String outputFormat = 'jpeg',
+    bool Function()? isCancelled,
+    Duration timeout = const Duration(seconds: 180),
   }) async {
     try {
-      final String trimmedPrompt = prompt.trim();
-      if (trimmedPrompt.isEmpty) {
+      final String text = prompt.trim();
+      if (text.isEmpty) {
         throw FalAiException('Prompt cannot be empty');
       }
-
-      // Convert image bytes to base64 Data URI
-      final String base64Image = base64Encode(imageBytes);
-
-      // Determine MIME type based on image content
-      final String mimeType = _detectMimeType(imageBytes);
-
-      final String dataUri = 'data:$mimeType;base64,$base64Image';
-
-      // Enhance prompt to focus on face preservation and Halloween theme
-      final String enhancedPrompt = _enhancePromptForFacePreservation(
-        trimmedPrompt,
+      final dataUri =
+          'data:${_detectMimeType(imageBytes)};base64,${base64Encode(imageBytes)}';
+      _debugPrompt('image-to-image', text);
+      final json = await _runQueue(
+        _i2iUrl,
+        buildImageToImageBody(
+          prompt: text,
+          imageDataUri: dataUri,
+          imageSize: imageSize,
+          quality: quality,
+          outputFormat: outputFormat,
+        ),
+        isCancelled: isCancelled,
+        timeout: timeout,
       );
-
-      // Submit the generation request using the new API structure
-      final submitResponse = await http.post(
-        Uri.parse(_i2iBaseUrl),
-        headers: {
-          'Authorization': 'Key $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'image_url': dataUri,
-          'prompt': enhancedPrompt,
-          'strength': imageStrength.clamp(0.0, 1.0),
-          'num_inference_steps': numInferenceSteps,
-          'guidance_scale': guidanceScale,
-          'num_images': 1,
-          'output_format': outputFormat,
-          if (seed != null) 'seed': seed,
-          'enable_safety_checker': enableSafetyChecker,
-        }),
-      );
-
-      if (submitResponse.statusCode ~/ 100 != 2) {
-        throw FalAiException(
-          'Failed to submit img2img: ${submitResponse.statusCode} - ${submitResponse.body}',
-        );
-      }
-
-      final submitData =
-          jsonDecode(submitResponse.body) as Map<String, dynamic>;
-
-      // Check if we have a direct response (sync mode)
-      if (submitData.containsKey('images') ||
-          submitData.containsKey('output')) {
-        return FalAiResult.fromJson(submitData);
-      }
-
-      // Get status and response URLs for async processing
-      final String? statusUrl = submitData['status_url'] as String?;
-      final String? responseUrl = submitData['response_url'] as String?;
-
-      if (statusUrl == null || responseUrl == null) {
-        throw FalAiException(
-          'No status_url or response_url provided by server',
-        );
-      }
-
-      // Poll status until completion
-      String status = 'IN_QUEUE';
-      int attempt = 0;
-      const int maxAttempts = 60; // ~60 seconds timeout
-
-      while (status != 'COMPLETED' && attempt < maxAttempts) {
-        await Future.delayed(const Duration(seconds: 1));
-
-        final statusResponse = await http.get(
-          Uri.parse('$statusUrl?logs=1'),
-          headers: {'Authorization': 'Key $_apiKey'},
-        );
-
-        if (statusResponse.statusCode ~/ 100 != 2) {
-          throw FalAiException(
-            'Failed to get status: ${statusResponse.statusCode} - ${statusResponse.body}',
-          );
-        }
-
-        final statusData =
-            jsonDecode(statusResponse.body) as Map<String, dynamic>;
-        status = statusData['status'] as String? ?? status;
-
-        // Handle logs if available (optional)
-        if (statusData['logs'] != null) {
-          final logs = statusData['logs'] as List;
-          final logMessages = logs
-              .map((e) => e['message'] as String?)
-              .whereType<String>()
-              .join('\n');
-          print('FAL AI Logs: $logMessages');
-        }
-
-        // Check for failure status
-        if (status == 'FAILED' || status == 'failed' || status == 'ERROR') {
-          final error = statusData['error'] ?? 'Unknown error';
-          throw FalAiException('Generation failed: $error');
-        }
-
-        attempt++;
-      }
-
-      if (status != 'COMPLETED') {
-        throw FalAiException('Generation timeout - took too long');
-      }
-
-      // Get the final result
-      final resultResponse = await http.get(
-        Uri.parse(responseUrl),
-        headers: {'Authorization': 'Key $_apiKey'},
-      );
-
-      if (resultResponse.statusCode ~/ 100 != 2) {
-        throw FalAiException(
-          'Failed to get result: ${resultResponse.statusCode} - ${resultResponse.body}',
-        );
-      }
-
-      final resultData =
-          jsonDecode(resultResponse.body) as Map<String, dynamic>;
-      return FalAiResult.fromJson(resultData);
+      return _parseResult(json, text);
     } catch (e) {
-      if (e is FalAiException) {
-        rethrow;
-      }
+      if (e is FalAiException) rethrow;
       throw FalAiException('Error generating image from image: $e');
     }
+  }
+
+  /// Request body for the image-to-video model. Pure and testable.
+  @visibleForTesting
+  static Map<String, dynamic> buildImageToVideoBody({
+    required String imageDataUri,
+    required String prompt,
+    int? seed,
+  }) => {
+    'prompt': prompt,
+    'image_url': imageDataUri,
+    'duration': videoSeconds,
+    'resolution': videoResolution,
+    // fal expands the prompt for quality; our no-speech line goes along.
+    'prompt_expansion_mode': 'quality',
+    'enable_safety_checker': true,
+    if (seed != null) 'seed': seed,
+  };
+
+  /// Motion prompt sent to the video model: the user's motion (or a gentle
+  /// default) plus one short face sentence. The user's text is framed as a
+  /// scene direction and speech is ruled out, so the model acts it out
+  /// instead of reading it aloud. Pure and testable.
+  @visibleForTesting
+  static String buildVideoPrompt(String? motionPrompt) {
+    final extra = (motionPrompt ?? '').trim().replaceAll(
+      RegExp(r'[,.;:!\s]+$'),
+      '',
+    );
+    final action = extra.isEmpty ? 'Subtle, natural motion' : 'Action: $extra';
+    return '$action. Keep the same face, natural and true to the photo, and keep the scene, lighting and setting from the image. $_noSpeech';
+  }
+
+  static const String _noSpeech =
+      'No speech, voiceover or narration; ambient sound only.';
+
+  /// Animates a generated image. Returns the CDN URL of the mp4.
+  static Future<String> generateVideo({
+    required Uint8List imageBytes,
+    String? motionPrompt,
+    bool Function()? isCancelled,
+    Duration timeout = const Duration(minutes: 6),
+  }) async {
+    try {
+      final continuityPrompt = buildVideoPrompt(motionPrompt);
+      _debugPrompt('image-to-video', continuityPrompt);
+      final dataUri =
+          'data:${_detectMimeType(imageBytes)};base64,${base64Encode(imageBytes)}';
+      final json = await _runQueue(
+        _i2vUrl,
+        buildImageToVideoBody(imageDataUri: dataUri, prompt: continuityPrompt),
+        isCancelled: isCancelled,
+        timeout: timeout,
+      );
+      final video = json['video'];
+      final url = video is Map ? video['url'] as String? : null;
+      if (url == null || url.isEmpty) {
+        throw FalAiException(
+          'Generation returned no video (filtered by the safety system)',
+        );
+      }
+      return url;
+    } catch (e) {
+      if (e is FalAiException) rethrow;
+      throw FalAiException('Error generating video: $e');
+    }
+  }
+
+  /// Downloads a finished video; the fal key is not sent to the CDN.
+  /// Storing it is the caller's job (SavedVideosProvider keeps it inside
+  /// the app, like pictures).
+  static Future<Uint8List> downloadVideoBytes(String videoUrl) async {
+    final response = await http.get(Uri.parse(videoUrl));
+    if (response.statusCode != 200) {
+      throw FalAiException('Failed to download video: ${response.statusCode}');
+    }
+    return response.bodyBytes;
+  }
+
+  /// Poll interval for queue requests; shortened in tests.
+  @visibleForTesting
+  static Duration pollInterval = const Duration(milliseconds: 1500);
+
+  /// Submit → poll → fetch result for any fal queue endpoint.
+  /// Runs a fal queue job and records the outcome in the analytics funnel.
+  static Future<Map<String, dynamic>> _runQueue(
+    String url,
+    Map<String, dynamic> body, {
+    bool Function()? isCancelled,
+    required Duration timeout,
+  }) async {
+    final kind = url.contains('video') ? 'video' : 'image';
+    try {
+      final json = await _runQueueRaw(
+        url,
+        body,
+        isCancelled: isCancelled,
+        timeout: timeout,
+      );
+      unawaited(AnalyticsService.generation(kind: kind, success: true));
+      return json;
+    } catch (e, st) {
+      if (!(isCancelled?.call() ?? false)) {
+        unawaited(AnalyticsService.generation(kind: kind, success: false));
+        unawaited(AnalyticsService.recordError(e, st, reason: 'fal $kind'));
+      }
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> _runQueueRaw(
+    String url,
+    Map<String, dynamic> body, {
+    bool Function()? isCancelled,
+    required Duration timeout,
+  }) async {
+    final headers = {
+      ..._auth(),
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    final submit = await httpClient.post(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    if (submit.statusCode ~/ 100 != 2) {
+      throw FalAiException(
+        'Failed to submit generation: ${submit.statusCode} - ${submit.body}',
+      );
+    }
+
+    final Map<String, dynamic> submitted = submit.body.isEmpty
+        ? {}
+        : jsonDecode(submit.body) as Map<String, dynamic>;
+
+    // Defensive: some responses are already the result.
+    if (submitted.containsKey('images')) return submitted;
+
+    final String? requestId = submitted['request_id'] as String?;
+    final String statusUrl =
+        (submitted['status_url'] as String?) ??
+        (requestId != null ? '$url/requests/$requestId/status' : '');
+    final String resultUrl =
+        (submitted['response_url'] as String?) ??
+        (requestId != null ? '$url/requests/$requestId' : '');
+    if (statusUrl.isEmpty || resultUrl.isEmpty) {
+      throw FalAiException('No request_id or URLs provided by server');
+    }
+
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (isCancelled != null && isCancelled()) {
+        throw FalAiException('Generation cancelled by user');
+      }
+      await Future<void>.delayed(pollInterval);
+
+      final st = await httpClient.get(Uri.parse(statusUrl), headers: _auth());
+      if (st.statusCode ~/ 100 != 2) {
+        throw FalAiException(
+          'Failed to get status: ${st.statusCode} - ${st.body}',
+        );
+      }
+      final status =
+          (jsonDecode(st.body) as Map<String, dynamic>)['status'] as String?;
+
+      if (status == 'COMPLETED') {
+        final res = await httpClient.get(
+          Uri.parse(resultUrl),
+          headers: _auth(),
+        );
+        if (res.statusCode ~/ 100 != 2) {
+          throw FalAiException(
+            'Failed to get result: ${res.statusCode} - ${res.body}',
+          );
+        }
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+      if (status == 'FAILED' || status == 'ERROR') {
+        throw FalAiException('Generation failed: ${st.body}');
+      }
+      // IN_QUEUE / IN_PROGRESS: keep polling.
+    }
+
+    throw FalAiException('Generation timeout - took too long');
+  }
+
+  static FalAiResult _parseResult(Map<String, dynamic> json, String prompt) {
+    final result = FalAiResult.fromJson({...json, 'prompt': prompt});
+    if (result.images.isEmpty) {
+      // Both models return an empty image list when their own safety system
+      // declines a request.
+      throw FalAiException(
+        'Generation returned no image (filtered by the safety system)',
+      );
+    }
+    return result;
   }
 
   /// Fetch image bytes directly from URL (no saving, for immediate display)
   static Future<Uint8List> fetchImageBytes(String imageUrl) async {
     try {
       final uri = Uri.parse(imageUrl);
-      final headers = {'Authorization': 'Key $_apiKey'};
+      final headers = _auth();
 
       // Use authorized request first to support short-lived signed URLs
       http.Response response = await http.get(uri, headers: headers);
@@ -460,177 +404,6 @@ class FalAiService {
       );
     } catch (e) {
       throw FalAiException('Error fetching image bytes: $e');
-    }
-  }
-
-  /// Base structure for all image-to-image generations
-  static const String _baseImageToImageStructure =
-      'IDENTICAL FACE, EXACT SAME PERSON, PRESERVE FACE COMPLETELY, KEEP ORIGINAL FACE, MAINTAIN FACE IDENTITY, SAME FACIAL FEATURES, high quality, realistic, portrait, professional photography, detailed, cinematic';
-
-  /// Base structure specifically for face transformation prompts
-  /// This ensures the AI focuses only on the user's face and ignores background/other elements
-  static const String _faceTransformationBaseStructure =
-      'FOCUS ONLY ON FACE, TRANSFORM ONLY THE PERSON\'S FACE, KEEP ORIGINAL FACIAL STRUCTURE, PRESERVE FACE IDENTITY, MAINTAIN FACIAL FEATURES, SAME PERSON, IDENTICAL FACE, EXACT SAME PERSON, high quality, realistic, portrait, professional photography, detailed, cinematic';
-
-  /// Enhance prompt for Recraft V3 model with base structure + user prompt
-  static String _enhancePromptForFacePreservation(String originalPrompt) {
-    // Combine base structure with user prompt
-    final enhancedPrompt = '$_baseImageToImageStructure, $originalPrompt';
-
-    // Ensure prompt is under 1000 characters
-    if (enhancedPrompt.length > 1000) {
-      return enhancedPrompt.substring(0, 997) + '...';
-    }
-
-    return enhancedPrompt;
-  }
-
-  /// Enhance prompt specifically for face transformation prompts
-  /// This ensures the AI focuses only on the user's face and ignores background/other elements
-  static String _enhancePromptForFaceTransformation(String originalPrompt) {
-    // Combine face transformation base structure with user prompt
-    final enhancedPrompt = '$_faceTransformationBaseStructure, $originalPrompt';
-
-    // Ensure prompt is under 1000 characters
-    if (enhancedPrompt.length > 1000) {
-      return enhancedPrompt.substring(0, 997) + '...';
-    }
-
-    return enhancedPrompt;
-  }
-
-  /// Generate image from image specifically for face transformation prompts
-  /// This function uses the face transformation base structure to focus only on the user's face
-  static Future<FalAiResult> generateFaceTransformation({
-    required String prompt,
-    required Uint8List imageBytes,
-    double imageStrength =
-        0.05, // Ultra low strength for maximum face preservation
-    int numInferenceSteps = 30, // Optimal steps for quality
-    double guidanceScale = 20.0, // Maximum guidance for face preservation
-    int? seed,
-    bool enableSafetyChecker = true,
-    String outputFormat = 'png',
-  }) async {
-    try {
-      // Convert image to base64 data URI
-      final String base64Image = base64Encode(imageBytes);
-      final String mimeType = _detectMimeType(imageBytes);
-      final String dataUri = 'data:$mimeType;base64,$base64Image';
-
-      // Enhance prompt with face transformation base structure
-      final String enhancedPrompt = _enhancePromptForFaceTransformation(prompt);
-
-      // Submit the request
-      final submitResponse = await http.post(
-        Uri.parse(_i2iBaseUrl),
-        headers: {
-          'Authorization': 'Key $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'image_url': dataUri,
-          'prompt': enhancedPrompt,
-          'strength': imageStrength.clamp(0.0, 1.0),
-          'num_inference_steps': numInferenceSteps.clamp(10, 50),
-          'guidance_scale': guidanceScale.clamp(1.0, 20.0),
-          'num_images': 1,
-          'output_format': outputFormat,
-          'style': 'realistic_image', // Valid Recraft V3 style parameter
-          'aspect_ratio': '1:1', // Square aspect ratio for better results
-          'image_size': 'square_hd', // Valid Recraft V3 image size parameter
-          'negative_prompt':
-              'blurry, distorted, ugly, bad anatomy, extra limbs, mutated, low quality, cartoon, drawing, painting, watermark, text, deformed face, asymmetric face, multiple faces, background, surroundings, environment',
-          if (seed != null) 'seed': seed,
-          'enable_safety_checker': enableSafetyChecker,
-        }),
-      );
-
-      if (submitResponse.statusCode ~/ 100 != 2) {
-        throw FalAiException(
-          'Failed to submit request: ${submitResponse.statusCode} ${submitResponse.body}',
-        );
-      }
-
-      final submitData = jsonDecode(submitResponse.body);
-      final String statusUrl = submitData['status_url'] as String;
-      final String resultUrl = submitData['response_url'] as String;
-
-      // Poll for completion
-      int attempts = 0;
-      const int maxAttempts = 60; // 60 seconds timeout
-      const Duration pollInterval = Duration(seconds: 1);
-
-      while (attempts < maxAttempts) {
-        await Future.delayed(pollInterval);
-        attempts++;
-
-        final statusResponse = await http.get(
-          Uri.parse(statusUrl),
-          headers: {'Authorization': 'Key $_apiKey'},
-        );
-
-        if (statusResponse.statusCode != 200) {
-          throw FalAiException(
-            'Failed to get status: ${statusResponse.statusCode}',
-          );
-        }
-
-        final statusData = jsonDecode(statusResponse.body);
-        final status = statusData['status'] as String?;
-
-        if (status == 'COMPLETED' ||
-            status == 'completed' ||
-            status == 'DONE') {
-          // Get the final result
-          final resultResponse = await http.get(
-            Uri.parse(resultUrl),
-            headers: {'Authorization': 'Key $_apiKey'},
-          );
-
-          if (resultResponse.statusCode != 200) {
-            throw FalAiException(
-              'Failed to get result: ${resultResponse.statusCode}',
-            );
-          }
-
-          final resultData = jsonDecode(resultResponse.body);
-          final images = resultData['images'] as List?;
-
-          if (images == null || images.isEmpty) {
-            throw FalAiException('No images in result');
-          }
-
-          final imageData = images.first as Map<String, dynamic>;
-          final imageUrl = imageData['url'] as String?;
-
-          if (imageUrl == null) {
-            throw FalAiException('No image URL in result');
-          }
-
-          // Download the image
-          final imageResponse = await http.get(Uri.parse(imageUrl));
-          if (imageResponse.statusCode != 200) {
-            throw FalAiException(
-              'Failed to download image: ${imageResponse.statusCode}',
-            );
-          }
-
-          return FalAiResult(
-            images: [FalAiImage(url: imageUrl, contentType: 'image/png')],
-            prompt: enhancedPrompt,
-            metadata: {'seed': seed, 'model': 'recraft-v3-face-transformation'},
-          );
-        } else if (status == 'FAILED' || status == 'failed') {
-          final error = statusData['error'] as String? ?? 'Unknown error';
-          throw FalAiException('Generation failed: $error');
-        }
-      }
-
-      throw FalAiException('Generation timed out after ${maxAttempts} seconds');
-    } catch (e) {
-      if (e is FalAiException) rethrow;
-      throw FalAiException('Error in face transformation: $e');
     }
   }
 
@@ -668,154 +441,11 @@ class FalAiService {
     return 'image/jpeg';
   }
 
-  /// Map various size inputs (like '1024x1024' or '1:1') to FAL-supported values
-  /// Enhance prompt for FLUX Schnell model with style and quality optimizations
-  static String _enhancePromptForFluxSchnell(
-    String prompt, {
-    FluxSchnellStyle? style,
-    FluxSchnellQuality? quality,
-  }) {
-    debugPrint('🎃 FLUX: Enhancing prompt for FLUX Schnell');
-    debugPrint('🎃 FLUX: Original prompt: $prompt');
-    debugPrint('🎃 FLUX: Style: ${style?.value ?? 'realistic'}');
-    debugPrint('🎃 FLUX: Quality: ${quality?.value ?? 'balanced'}');
-
-    // Base FLUX Schnell enhancements
-    final List<String> enhancements = [
-      'high quality',
-      'detailed',
-      'sharp focus',
-      'professional',
-    ];
-
-    // Add style-specific enhancements
-    if (style != null) {
-      switch (style) {
-        case FluxSchnellStyle.realistic:
-          enhancements.addAll([
-            'photorealistic',
-            'lifelike',
-            'natural lighting',
-          ]);
-          break;
-        case FluxSchnellStyle.artistic:
-          enhancements.addAll(['artistic', 'creative', 'expressive']);
-          break;
-        case FluxSchnellStyle.cinematic:
-          enhancements.addAll([
-            'cinematic',
-            'dramatic lighting',
-            'movie quality',
-          ]);
-          break;
-        case FluxSchnellStyle.digital:
-          enhancements.addAll(['digital art', 'clean', 'modern']);
-          break;
-        case FluxSchnellStyle.painting:
-          enhancements.addAll(['painted', 'brush strokes', 'artistic']);
-          break;
-        case FluxSchnellStyle.sketch:
-          enhancements.addAll(['sketch', 'line art', 'drawn']);
-          break;
-        case FluxSchnellStyle.anime:
-          enhancements.addAll(['anime style', 'manga', 'japanese art']);
-          break;
-        case FluxSchnellStyle.cartoon:
-          enhancements.addAll(['cartoon', 'animated', 'colorful']);
-          break;
-        case FluxSchnellStyle.fantasy:
-          enhancements.addAll(['fantasy', 'magical', 'enchanted']);
-          break;
-        case FluxSchnellStyle.horror:
-          enhancements.addAll(['horror', 'dark', 'scary', 'atmospheric']);
-          break;
-        case FluxSchnellStyle.sciFi:
-          enhancements.addAll(['sci-fi', 'futuristic', 'cyberpunk']);
-          break;
-        case FluxSchnellStyle.vintage:
-          enhancements.addAll(['vintage', 'retro', 'classic']);
-          break;
-        case FluxSchnellStyle.modern:
-          enhancements.addAll(['modern', 'contemporary', 'sleek']);
-          break;
-        case FluxSchnellStyle.abstract:
-          enhancements.addAll(['abstract', 'artistic', 'creative']);
-          break;
-        case FluxSchnellStyle.minimalist:
-          enhancements.addAll(['minimalist', 'simple', 'clean']);
-          break;
-      }
-    }
-
-    // Add quality-specific enhancements
-    if (quality != null) {
-      switch (quality) {
-        case FluxSchnellQuality.fast:
-          enhancements.addAll(['fast generation', 'efficient']);
-          break;
-        case FluxSchnellQuality.balanced:
-          enhancements.addAll(['balanced quality', 'optimized']);
-          break;
-        case FluxSchnellQuality.high:
-          enhancements.addAll(['high quality', 'detailed', 'premium']);
-          break;
-        case FluxSchnellQuality.ultra:
-          enhancements.addAll(['ultra high quality', 'masterpiece', 'perfect']);
-          break;
-      }
-    }
-
-    // Combine prompt with enhancements
-    final String enhancedPrompt = '$prompt, ${enhancements.join(', ')}';
-
-    debugPrint('🎃 FLUX: Enhanced prompt: $enhancedPrompt');
-
-    // Ensure prompt is under 1000 characters
-    if (enhancedPrompt.length > 1000) {
-      final String truncatedPrompt = enhancedPrompt.substring(0, 997) + '...';
-      debugPrint('🎃 FLUX: Truncated prompt: $truncatedPrompt');
-      return truncatedPrompt;
-    }
-
-    return enhancedPrompt;
-  }
-
-  static String _normalizeImageSize(String input) {
-    final String value = input.trim().toLowerCase();
-
-    // Directly supported values
-    const supported = {'square_hd', 'portrait_4_3', 'landscape_16_9'};
-    if (supported.contains(value)) return value;
-
-    // Common aliases or dimension strings
-    if (value == 'square' || value == '1:1' || value == '1024x1024') {
-      return 'square_hd';
-    }
-    if (value == 'portrait' ||
-        value == '3:4' ||
-        value == '4:5' ||
-        value == '768x1024') {
-      return 'portrait_4_3';
-    }
-    if (value == 'landscape' ||
-        value == '16:9' ||
-        value == '1024x768' ||
-        value == '1920x1080') {
-      return 'landscape_16_9';
-    }
-
-    // Explicit dimensions are not guaranteed supported; map to closest enum
-    // to avoid 422 errors on the FLUX schnell endpoint.
-
-    // Fallback to square to avoid 422 on unsupported values
-    return 'square_hd';
-  }
-
   /// Download and save image to device
   static Future<String> downloadAndSaveImage(String imageUrl) async {
     try {
       final uri = Uri.parse(imageUrl);
-      final headers = {'Authorization': 'Key $_apiKey'};
+      final headers = _auth();
 
       // Fetch with auth first (handles private URLs)
       http.Response response = await http.get(uri, headers: headers);
@@ -831,6 +461,7 @@ class FalAiService {
         // Best-effort gallery save: do not fail overall flow if this errors
         try {
           await Gal.putImage(file.path);
+          unawaited(AnalyticsService.imageSaved());
         } catch (_) {}
 
         return file.path;
@@ -966,12 +597,9 @@ class FalAiResult {
 
       try {
         // Fetch the actual result from response_url
-        final apiKey =
-            EnvironmentConfig.falAiApiKey ??
-            '03e8751f-6291-4402-9b16-4e4114658277:f6836d66a4e0d75c9325178efa778a76';
         final response = await http.get(
           Uri.parse(responseUrl),
-          headers: {'Authorization': 'Key $apiKey'},
+          headers: FalAiService._auth(),
         );
 
         if (response.statusCode == 200) {

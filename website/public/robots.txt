@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /get/
+Sitemap: https://spookyai-app.web.app/sitemap.xml

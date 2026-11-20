@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/seasons/season_palette.dart';
 
 class SubscriptionInfoDialog extends StatelessWidget {
   const SubscriptionInfoDialog({super.key});
@@ -15,7 +16,7 @@ class SubscriptionInfoDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF1D162B),
+      backgroundColor: SeasonPalette.inputFill,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         constraints: const BoxConstraints(maxHeight: 600),
@@ -32,9 +33,7 @@ class SubscriptionInfoDialog extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6A00), Color(0xFF9C27B0)],
-                        ),
+                        color: SeasonPalette.accent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -44,19 +43,23 @@ class SubscriptionInfoDialog extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Subscription Information',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: SeasonPalette.text,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     IconButton(
+                      tooltip: 'Close',
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Colors.white70),
+                      icon: Icon(
+                        Icons.close,
+                        color: SeasonPalette.text.withOpacity(0.70),
+                      ),
                     ),
                   ],
                 ),
@@ -90,27 +93,27 @@ class SubscriptionInfoDialog extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2A1F3D),
+                    color: SeasonPalette.card,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFFFF6A00).withOpacity(0.3),
+                      color: SeasonPalette.accent.withOpacity(0.3),
                     ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
                           Icon(
                             Icons.autorenew,
-                            color: Color(0xFFFF6A00),
+                            color: SeasonPalette.accent,
                             size: 20,
                           ),
                           SizedBox(width: 8),
                           Text(
                             'Auto-Renewal',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: SeasonPalette.text,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -118,19 +121,19 @@ class SubscriptionInfoDialog extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Premium subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period.',
                         style: TextStyle(
-                          color: Color(0xFF8C7BA6),
+                          color: SeasonPalette.mutedText,
                           fontSize: 14,
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'You can manage your subscription in your Apple ID account settings.',
                         style: TextStyle(
-                          color: Color(0xFF8C7BA6),
+                          color: SeasonPalette.mutedText,
                           fontSize: 14,
                           height: 1.4,
                         ),
@@ -152,7 +155,7 @@ class SubscriptionInfoDialog extends StatelessWidget {
                   child: FilledButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6A00),
+                      backgroundColor: SeasonPalette.accent,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -186,17 +189,17 @@ class SubscriptionInfoDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A1F3D),
+        color: SeasonPalette.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFF6A00).withOpacity(0.3)),
+        border: Border.all(color: SeasonPalette.accent.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: SeasonPalette.text,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -204,43 +207,43 @@ class SubscriptionInfoDialog extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: Color(0xFFFF6A00),
+            style: TextStyle(
+              color: SeasonPalette.accent,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Subscription Length:',
             style: TextStyle(
-              color: Colors.white,
+              color: SeasonPalette.text,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           Text(
             period,
-            style: const TextStyle(color: Color(0xFF8C7BA6), fontSize: 14),
+            style: TextStyle(color: SeasonPalette.mutedText, fontSize: 14),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Price:',
             style: TextStyle(
-              color: Colors.white,
+              color: SeasonPalette.text,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           Text(
             price,
-            style: const TextStyle(color: Color(0xFF8C7BA6), fontSize: 14),
+            style: TextStyle(color: SeasonPalette.mutedText, fontSize: 14),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Content & Services:',
             style: TextStyle(
-              color: Colors.white,
+              color: SeasonPalette.text,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -252,15 +255,15 @@ class SubscriptionInfoDialog extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '• ',
-                    style: TextStyle(color: Color(0xFFFF6A00), fontSize: 14),
+                    style: TextStyle(color: SeasonPalette.accent, fontSize: 14),
                   ),
                   Expanded(
                     child: Text(
                       feature,
-                      style: const TextStyle(
-                        color: Color(0xFF8C7BA6),
+                      style: TextStyle(
+                        color: SeasonPalette.mutedText,
                         fontSize: 14,
                       ),
                     ),
@@ -278,21 +281,21 @@ class SubscriptionInfoDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A1F3D),
+        color: SeasonPalette.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.shopping_bag, color: Color(0xFF4CAF50), size: 20),
               SizedBox(width: 8),
               Text(
                 'Token Packages',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: SeasonPalette.text,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -300,15 +303,11 @@ class SubscriptionInfoDialog extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'One-time purchases for image generation tokens:',
-            style: TextStyle(color: Color(0xFF8C7BA6), fontSize: 14),
+            style: TextStyle(color: SeasonPalette.mutedText, fontSize: 14),
           ),
           const SizedBox(height: 8),
-          _buildTokenPackage(
-            '1 Token',
-            'Single use token for one image generation',
-          ),
           _buildTokenPackage(
             '10 Tokens',
             '10 tokens for multiple image generations',
@@ -337,16 +336,16 @@ class SubscriptionInfoDialog extends StatelessWidget {
                 children: [
                   TextSpan(
                     text: '$name: ',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: SeasonPalette.text,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   TextSpan(
                     text: description,
-                    style: const TextStyle(
-                      color: Color(0xFF8C7BA6),
+                    style: TextStyle(
+                      color: SeasonPalette.mutedText,
                       fontSize: 14,
                     ),
                   ),
@@ -363,21 +362,21 @@ class SubscriptionInfoDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A1F3D),
+        color: SeasonPalette.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF2196F3).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.gavel, color: Color(0xFF2196F3), size: 20),
               SizedBox(width: 8),
               Text(
                 'Legal Information',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: SeasonPalette.text,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -408,7 +407,7 @@ class SubscriptionInfoDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF1D162B),
+          color: SeasonPalette.inputFill,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: const Color(0xFF2196F3).withOpacity(0.2)),
         ),

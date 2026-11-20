@@ -1,3 +1,5 @@
+import 'dart:async';
+import '../services/analytics_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingData {
@@ -31,6 +33,7 @@ class OnboardingService {
   static Future<void> completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_onboardingKey, true);
+    unawaited(AnalyticsService.onboardingComplete());
   }
 
   static Future<void> resetOnboarding() async {

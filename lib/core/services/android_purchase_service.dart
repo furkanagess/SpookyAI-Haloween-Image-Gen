@@ -14,29 +14,40 @@ class AndroidPurchaseService {
       // Note: Real price will be fetched from Google Play Console via pack.realPrice
       const Pack(
         name: 'SpookyAI Premium',
-        tokens: 20,
+        tokens: 50,
         productId: 'spookyai_premium',
         price: '4.99', // Fallback price - real price comes from Google Play
         note: 'Monthly subscription with exclusive benefits',
-        imageAsset: 'assets/images/ghost-face.png',
-        whiteTint: true,
         isPremium: true,
         features: [
-          '20 tokens per month',
+          '50 tokens per month',
           'Access to all prompts',
-          'Daily token spin wheel',
           'Priority AI processing',
         ],
       ),
-      // Android Token Packs - Based on Google Play Console screenshot
+      // Android Token Packs - biggest first (Based on Google Play Console
+      // screenshot for prices).
       const Pack(
-        name: '1 Token',
-        tokens: 1,
-        productId: '1_token',
-        price: '20.00',
-        note: 'Quick pack for a single image',
-        imageAsset: 'assets/images/spider.png',
-        whiteTint: true,
+        name: '150 Token',
+        tokens: 150,
+        productId: '150_token',
+        price: '1.000.00',
+        note: 'For power users 💀',
+      ),
+      const Pack(
+        name: '60 Token',
+        tokens: 60,
+        productId: '60_token',
+        price: '500.00',
+        note: 'Most popular choice 🧙',
+        isPopular: true,
+      ),
+      const Pack(
+        name: '25 Token',
+        tokens: 25,
+        productId: '25_token',
+        price: '250.00',
+        note: 'A nice step up for regular creators 👻',
       ),
       const Pack(
         name: '10 Token',
@@ -44,32 +55,6 @@ class AndroidPurchaseService {
         productId: '10_token',
         price: '125.00',
         note: 'Great for small trials 🎃',
-        imageAsset: 'assets/images/pumpkin.png',
-      ),
-      const Pack(
-        name: '25 Token',
-        tokens: 25,
-        productId: '25_token',
-        price: '250.00',
-        note: 'Most popular choice 👻',
-        imageAsset: 'assets/images/haunted-house.png',
-      ),
-      const Pack(
-        name: '60 Token',
-        tokens: 60,
-        productId: '60_token',
-        price: '500.00',
-        note: 'For regular creators 🧙',
-        imageAsset: 'assets/images/witch-hat.png',
-      ),
-      const Pack(
-        name: '150 Token',
-        tokens: 150,
-        productId: '150_token',
-        price: '1.000.00',
-        note: 'For power users 💀',
-        imageAsset: 'assets/images/ghost-face.png',
-        whiteTint: true,
       ),
     ];
   }
@@ -77,7 +62,6 @@ class AndroidPurchaseService {
   /// Get Android-specific product IDs
   static Set<String> getAndroidProductIds() {
     return {
-      '1_token',
       '10_token',
       '25_token',
       '60_token',
